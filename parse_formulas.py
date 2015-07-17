@@ -2,7 +2,7 @@ from collections import deque
 from xlwings import Workbook, Range, Sheet
 from sympy import var
 import os
-from docopt import docopt
+# from docopt import docopt
 import itertools
 
 from data_source import get_historic_data_as_dataframe, get_names_as_dict
@@ -35,10 +35,11 @@ def get_dataframe_before_equations():
 def get_array_defore_equations():
     df = get_dataframe_before_equations() 
     ar0 = df.as_matrix().transpose().astype(object) #
-    #todo: put actual labels from df
-    ar = np.insert(ar0, 0, 'labels', axis = 1)
-    #todo: put actual years here from df
-    ar = np.insert(ar, 0,  'years', axis = 0)
+    labels = get_row_labels()
+    print(labels)
+    ar = np.insert(ar0, 0, labels, axis = 1)
+    years = [""] + get_years_as_list()
+    ar = np.insert(ar, 0, years, axis = 0)
     return ar
     
          
