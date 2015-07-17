@@ -10,8 +10,12 @@
         equations
         names
         controls (forecast parameters)
-        row_labels
-        years
+        formats 
+           xl_filename
+           sheet
+           start_year
+           row_labels        
+        
         
    Output: 
         macro.xls
