@@ -23,7 +23,8 @@
 """
 
 import numpy as np
-        
+import pandas as pd
+
 from data_source import get_historic_data_as_dataframe, get_names_as_dict
 from data_source import get_equations
 from data_source import get_controls_as_dataframe
@@ -57,6 +58,21 @@ def populate_cellblock_with_years(cellblock, years):
     
 def populate_cellblock_with_data(cellblock, row_labels, data):    
     # todo
+    data = get_historic_data_as_dataframe()
+
+    # Since we're dealing with a list of lists it's easier to just
+    # use pure python loops
+    years = cellblock[0][2:]
+    props = [row[1] for row in cellblock[1:]]
+    
+    col_offset = 2
+    row_offset = 1
+    for i, y in enumerate(years):
+        for j, p in enumerate(props):
+            try:
+                cellblock[j + row_offset][i + col_offset] = data[y][p]
+            except KeyError:
+                pass
     return cellblock
     
 def populate_cellblock_with_controls(cellblock, row_labels, row_titles):
