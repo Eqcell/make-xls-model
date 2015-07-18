@@ -15,6 +15,20 @@ data_proxy = [ ("GDP", 2013, 66190.11992)
         , ("GDP_IP", 2013, 105.0467483)
         , ("GDP_IP", 2014, 107.1941886)
         ] 
+
+def check_get_historic_data_as_dataframe():
+    """
+    >>> check_get_controls_as_dataframe() 
+    True    
+    """
+    return get_sample_historic_data_as_dataframe() == get_historic_data_as_dataframe()
+       
+def get_sample_historic_data_as_dataframe():
+    #todo: must return a dataframe based on *data_proxy*
+    z = { "GDP" : [66190.11992, 71406.3992 ]
+          , "GDP_IQ": [101.3407976, 100.6404858]       
+          , "GDP_IP": [105.0467483, 107.1941886]}
+    return pd.DataFrame(z, index = [2013, 2014])
         
 def get_historic_data_as_dataframe():
     #todo: must return a dataframe based on *data_proxy*
@@ -54,7 +68,7 @@ def get_names_as_dict():
         new_entry_dict = {row[1]: sub_dict}
         names_dict.update(new_entry_dict)
     return names_dict
-
+    
 controls_proxy = [("GDP_IP", 2015, 95.0)
         , ("GDP_IQ", 2015, 115.0)
         , ("GDP_IP", 2016, 102.5)
