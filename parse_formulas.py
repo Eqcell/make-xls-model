@@ -12,7 +12,7 @@ from data_source import get_row_labels, get_years_as_list, get_xl_filename
 
 import numpy as np
 import pandas as pd
-
+import re
 TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
 
 data = get_historic_data_as_dataframe()  
@@ -23,7 +23,11 @@ row_labels = get_row_labels()
 years = get_years_as_list()
 
 def unique(list_):
-       return list(set(list_))
+    """Returns unique elements from list.
+    >>> unique(['a','a'])
+    ['a']
+    """
+    return list(set(list_))
         
 def get_dataframe_before_equations():    
     return pd.DataFrame(
@@ -32,11 +36,10 @@ def get_dataframe_before_equations():
           , "GDP_IP": [105.0467483, 107.1941886, 115.0, 113.0]} 
           ,   index = [2013, 2014, 2015, 2016]
           )
-def get_array_defore_equations():
+def get_array_before_equations():
     df = get_dataframe_before_equations() 
-    ar0 = df.as_matrix().transpose().astype(object) #
+    ar0 = df.as_matrix().transpose().astype(object)
     labels = get_row_labels()
-    print(labels)
     ar = np.insert(ar0, 0, labels, axis = 1)
     years = [""] + get_years_as_list()
     ar = np.insert(ar, 0, years, axis = 0)
@@ -44,14 +47,96 @@ def get_array_defore_equations():
     
          
 df = get_dataframe_before_equations()
-ar = get_array_defore_equations()
+ar = get_array_before_equations()
 formulas = equations
-variables = unique(controls.columns.values.tolist() + row_labels)
 
-print(df)
-print(ar)
-print (formulas)
-print (variables)
+def strip_timeindex(str_):
+    """Returns variable name without time index.
+    TODO: if function cannot strip time index anything return None
+
+    Tests:
+    >>> strip_timeindex("GDP(t)")
+    'GDP'
+
+    WARNING: in no time index return 'str_'. Test below fails.
+    #>>> strip_timeindex("GDP")
+    #'GDP'
+    """
+    all_indices = "".join(TIME_INDEX_VARIABLES)
+    pattern = r"(\S*)[\[(][" + all_indices + "][)\]]"
+    m = re.search(pattern, str_)
+    if m:
+        return m.groups()[0]
+    else:
+        return None
+
+def new_parse_formulas(equations):
+    """Returns a dict with left and right hand side of equations, referenced by variable name in keys.
+    WARNING: Test below not stable, no same order of elements in dictionaries on output.
+    >>> new_parse_formulas(['GDP(t) = GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100'])
+    {'GDP': {'dependent_var': 'GDP(t)', 'formula': 'GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100'}}
+
+
+    >>> new_parse_formulas(['x(t) = x(t-1) + 1'])
+    {'x': {'dependent_var': 'x(t)', 'formula': 'x(t-1) + 1'}}
+
+    #>>> new_parse_formulas(['x(t) = x(t-1) + 1', 'y(t) = x(t)'])
+    #{'x': {'dependent_var': 'x(t)', 'formula': 'x(t-1) + 1'}, 'y': {'dependent_var': 'y(t)', 'formula': 'x(t)'}}
+    """
+    parsed_eq = {}
+    for eq in equations:
+        #eq = eq.strip()
+        dependent_var, formula = eq.split('=')
+        key = strip_timeindex(dependent_var)
+        parsed_eq[key] = {'dependent_var': dependent_var.strip(), 'formula': formula.strip()}
+    return parsed_eq
+
+print(new_parse_formulas(equations))
+
+variables = unique(controls.columns.values.tolist() + row_labels)
+# variables must have row locations known in from of dictionary
+
+
+
+def get_xl_col_litteral(zero_based_col_number):
+    """
+    Returns A...ZZZ type of string corresponding to *zero_based_col_number* col number
+    >>> get_xl_col_litteral(0)
+    'A'
+    >>> get_xl_col_litteral(3-1)
+    'C'
+    """
+    # TODO: substitute with some xl package own formula engine or fork from there
+    return "ABCDEFGHIJ"[zero_based_col_number]
+
+def new_get_excel_formula(cell, dict_formula, dict_variables):
+    dict_formula =  {'x': {'dependent_var': 'x(t)', 'formula': 'x(t-1) + y(t)'}}
+
+
+    """
+    must have somewhere:
+        row, col - cell location
+        x(t) = x(t-1) - equation
+        x - variable name
+        variable_locations dict rows for all other variables {var1:row1, var2:row2}
+    require:
+        left-hand side is always (t). cannot accept (t-1), (t+1) or other on the left of '='
+    algorithm:
+        in equation we search for terms that denote variables, possibly lagged
+        term = 'x(t-1)'
+        *col* is substituted for *t* in 't-1' and evaluated, result is column number
+        col = 5, index = 5-1 = 4
+        variable_locations['x'] equals row with that variable
+    returns:
+        excel formula to be pasted to (row, col)
+
+    """
+
+
+#print(df)
+#print(ar)
+#print (formulas)
+#print (variables)
 
     
 
@@ -197,8 +282,9 @@ def parse_formulas(formulas, variables):
 def simplify_expression(expression, time_period, variables, depth=0):
     # get_variable_to_cell_segments
     """
-    A recursive function which breaks a Sympy expression into segments, where each segment points to one cell on the
-    excel sheet upon substitution of time index variable (t). Returns a dictionary of such segments and the computed
+    A recursive function which breaks a Sympy expression into segments,
+    where each segment points to one cell on the excel sheet upon substitution
+    of time index variable (t). Returns a dictionary of such segments and the computed
     cells.
     input
     -----
@@ -206,15 +292,22 @@ def simplify_expression(expression, time_period, variables, depth=0):
     time_period:      A value to be time_periodtituted for the time index, t.
     variables:        A list of all variables extracted from excel sheet.
     depth:            Depth of recursion, used internally
-    returns:          A dict with a segment as key and computed excel cell index as value, e.g: {a(t - 1): (5, 4), a_rate(t): (4, 5)}
+
+    returns:          A dict with a segment as key and computed excel cell index as value,
+                      e.g: {a(t - 1): (5, 4), a_rate(t): (4, 5)}
     """
     result = {}
-    variable = expression.func        # get the function from sympy expression, e.g for expression = f(t), `f` is the function
+
+    # get the function from sympy expression, e.g for expression = f(t), `f` is the function
+    variable = expression.func
+
     if variable.is_Function:
         # for simple expressions like f(t), variable=f and variable.is_Function = True,
         # for more complex expressions, variable would be another expression, hence would have to be broken down recursively.
-        cell_row = variables[str(variable)]            # get the row index from variable name
-        x = list(expression.args[0].free_symbols)[0]   # get the independent var, mostly `t` from the argument in expression
+        # get the row index from variable name
+        cell_row = variables[str(variable)]
+        # get the independent var, mostly `t` from the argument in expression
+        x = list(expression.args[0].free_symbols)[0]
         cell_col = int(expression.args[0].subs(x, time_period))
         result[expression] = (cell_row, cell_col)
     else:
@@ -227,24 +320,6 @@ def simplify_expression(expression, time_period, variables, depth=0):
 
     return result
 
-def get_excel_formula_as_string(right_side_expression, time_period, variables):
-    """
-    Using the right-hand side of a math expression (e.g. a(t)=a(t-1)*a_rate(t)), converted to sympy
-    expression, and substituting the time index variable (t) in it, the function finds the Excel formula
-    corresponding to the right-hand side expression.
-    input
-    -----
-    right_side_expression:         sympy expression, e.g. a(t-1)*a_rate(t)
-    time_period:        value of time index variable (t) for time_periodtitution
-    output:
-    formula_string:     a string of excel formula, e.g. '=A20*B21'
-    """
-    right_dict = simplify_expression(right_side_expression, time_period, variables)
-    for right_key, right_coords in right_dict.items():
-        excel_index = str(Range(get_sheet(), tuple(right_coords)).get_address(False, False))
-        right_side_expression = right_side_expression.subs(right_key, excel_index)
-    formula_str = '=' + str(right_side_expression)
-    return formula_str
 
 def _get_formula(parsed_formulas, row, col):
     """
@@ -300,3 +375,8 @@ def apply_formulas_on_sheet(workbook, variables, parsed_formulas, start_cell):
             right_side_expression = formula_dict['formula']
             formula_str = get_excel_formula_as_string(right_side_expression, col, variables)
             Range(get_sheet(), dv_coords).formula = formula_str                # Apply formula on excel cell
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
