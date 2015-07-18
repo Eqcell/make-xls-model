@@ -18,10 +18,14 @@ data_proxy = [ ("GDP", 2013, 66190.11992)
         
 def get_historic_data_as_dataframe():
     #todo: must return a dataframe based on *data_proxy*
-    z = {     "GDP" : [66190.11992, 71406.3992 ]
-          , "GDP_IQ": [101.3407976, 100.6404858]       
-          , "GDP_IP": [105.0467483, 107.1941886]} 
-    return pd.DataFrame(z, index = [2013, 2014])
+    #z = { "GDP" : [66190.11992, 71406.3992 ]
+    #      , "GDP_IQ": [101.3407976, 100.6404858]       
+    #      , "GDP_IP": [105.0467483, 107.1941886]}
+    # Read dataframe
+    df = pd.DataFrame(data_proxy, columns=['prop', 'time', 'val'])
+    # Pivot by time
+    # pd.DataFrame(z, index = [2013, 2014])
+    return df.pivot(index='prop', columns='time', values='val')
         
 def get_data(label, year, data_proxy):
     slice = [x for x in data_proxy if x[0] == label]
@@ -59,9 +63,12 @@ controls_proxy = [("GDP_IP", 2015, 95.0)
         
 def get_controls_as_dataframe():
     #todo: must return a dataframe based on *controls_proxy*
-    z = {'GDP_IP' : [95.0, 102.5],
-         'GDP_IQ' : [115.0, 113.0]}   
-    return pd.DataFrame(z, index=[2015, 2016])
+    #z = {'GDP_IP' : [95.0, 102.5],
+    #     'GDP_IQ' : [115.0, 113.0]}   
+    #return pd.DataFrame(z, index=[2015, 2016])
+    
+    df = pd.DataFrame(controls_proxy, columns=['prop', 'time', 'val'])
+    return df.pivot(index='prop', columns='time', values='val')
 
 
 def get_years_as_list():
@@ -104,14 +111,15 @@ final_dataframe_proxy = """		2014	2015	2016
 # from data_source import get_controls_as_dataframe
 # from data_source import get_row_labels, get_years_as_list
 
-data = get_historic_data_as_dataframe()  
-names = get_names_as_dict()
-equations = get_equations()
-controls = get_controls_as_dataframe()
-row_labels = get_row_labels()
-years = get_years_as_list()
 
 if __name__ == "__main__":
+    data = get_historic_data_as_dataframe()  
+    names = get_names_as_dict()
+    equations = get_equations()
+    controls = get_controls_as_dataframe()
+    row_labels = get_row_labels()
+    years = get_years_as_list()
+
     print("------ Data:")
     pprint(data) 
 
