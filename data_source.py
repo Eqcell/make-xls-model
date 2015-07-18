@@ -61,12 +61,25 @@ controls_proxy = [("GDP_IP", 2015, 95.0)
         , ("GDP_IQ", 2016, 113.0)
         ]
         
+def check_get_controls_as_dataframe():
+    """
+    >>> check_get_controls_as_dataframe() 
+    True
+    
+    """
+    return get_sample_controls_as_dataframe() == get_controls_as_dataframe()
+    
+def get_sample_controls_as_dataframe():    
+    z = {'GDP_IP' : [95.0, 102.5],
+         'GDP_IQ' : [115.0, 113.0]}   
+    return pd.DataFrame(z, index=[2015, 2016])
+    
 def get_controls_as_dataframe():
     #todo: must return a dataframe based on *controls_proxy*
     #z = {'GDP_IP' : [95.0, 102.5],
     #     'GDP_IQ' : [115.0, 113.0]}   
     #return pd.DataFrame(z, index=[2015, 2016])
-    
+    # todo-again: must pass check_get_controls_as_dataframe(): doctest
     df = pd.DataFrame(controls_proxy, columns=['prop', 'time', 'val'])
     return df.pivot(index='prop', columns='time', values='val')
 
@@ -107,35 +120,27 @@ final_dataframe_proxy = """		2014	2015	2016
 Дефлятор ВВП	gdp_Ip	107,2	110	112
 """        
 
-# from data_source import get_historic_data_as_dataframe, get_names_as_dict
-# from data_source import get_controls_as_dataframe
-# from data_source import get_row_labels, get_years_as_list
-
-
 if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
+
     data = get_historic_data_as_dataframe()  
     names = get_names_as_dict()
     equations = get_equations()
     controls = get_controls_as_dataframe()
-    row_labels = get_row_labels()
     years = get_years_as_list()
+    row_labels = get_row_labels()
 
-    print("------ Data:")
-    pprint(data) 
+    print_dict = { "------ Data:":data,
+                   "------ Names:":names,
+                   "------ Equations:": equations, 
+                   "------ Control forecast parameters:":controls,
+                   "------ Years:": years,
+                   "------ Row labels:":row_labels
+                   }
+    for header, var in print_dict.items():
+        print()
+    #    print(header)
+    #    pprint(var)
 
-    print("------ Names:")
-    pprint(names)  
-
-    print("------ Control forecast parameters:")
-    pprint(controls)  
-
-    print("------ Row labels:")
-    pprint(row_labels)  
-
-    print("------ Years:")
-    pprint(years) 
-
-    print("------ Equations:")
-    pprint(equations)
-
-    pprint(final_dataframe_proxy)
+    #pprint(final_dataframe_proxy)
