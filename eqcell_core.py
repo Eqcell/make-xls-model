@@ -14,7 +14,7 @@ def get_excel_ref(cell):
     'A1'
     
     >>> get_excel_ref((0,0))
-    'A1'    
+    'A1'
     
     >>> get_excel_ref((1,3))
     'D2'
