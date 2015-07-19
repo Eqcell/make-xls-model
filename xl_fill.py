@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import pandas as pd
 import re
 from pprint import pprint
@@ -194,8 +195,15 @@ if __name__ == "__main__":
         TODO: must yeild coordinates of nan values from data area in *ar* 
               data area is all of ar, but not row 0 or col 0
         """
-        yield 1, 3 
-        yield 1, 4        
+        row_offset = 1
+        col_offset = 1
+        
+        # We loop and check which indexes correspond to nan
+        for i, row in enumerate(ar[col_offset:]):
+            for j, col in enumerate(row[row_offset:]):
+                if math.isnan(col):
+                    yield i + col_offset, j + row_offset 
+    
     
     def get_var_label(ar, row, var_column = 0):
         return ar[row, var_column]
