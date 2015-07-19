@@ -55,6 +55,7 @@ def get_sample_array_after_equations():
 def get_excel_formula(cell, equation):
     return "=B2"
 
+
 def unique(list_):
     """Returns unique elements from list.
     >>> unique(['a','a'])
@@ -113,6 +114,31 @@ def parse_to_formula_dict(equations):
         key = strip_timeindex(dependent_var)
         parsed_eq_dict[key] = {'dependent_var': dependent_var.strip(), 'formula': formula.strip()}
     return parsed_eq_dict
+
+def yield_cells_for_filling(ar):
+    """
+    TODO: must yeild coordinates of nan values from data area in *ar* 
+          data area is all of ar, but not row 0 or col 0
+    Example:
+    
+    >>> gen = yield_cells_for_filling([['', 2013, 2014, 2015, 2016],
+    ...                                ['GDP', 66190.11992, 71406.3992, np.nan, np.nan],
+    ...                                ['GDP_IP', 105.0467483, 107.1941886, 115.0, 113.0],
+    ...                                ['GDP_IQ', 101.3407976, 100.6404858, 95.0, 102.5]])
+    >>> next(gen)
+    (1, 3)
+    >>> next(gen)
+    (1, 4)
+    
+    """
+    row_offset = 1
+    col_offset = 1
+    
+    # We loop and check which indexes correspond to nan
+    for i, row in enumerate(ar[col_offset:]):
+        for j, col in enumerate(row[row_offset:]):
+            if math.isnan(col):
+                yield i + col_offset, j + row_offset 
 
 if __name__ == "__main__":
     import doctest
@@ -189,21 +215,6 @@ if __name__ == "__main__":
     # parse_equation_to_xl_formula(dict_formula, dict_variables, column)
     
     print("\n***  Iterate over NaN in data area + fill with stub formula:")    
-    
-    def yield_cells_for_filling(ar):
-        """
-        TODO: must yeild coordinates of nan values from data area in *ar* 
-              data area is all of ar, but not row 0 or col 0
-        """
-        row_offset = 1
-        col_offset = 1
-        
-        # We loop and check which indexes correspond to nan
-        for i, row in enumerate(ar[col_offset:]):
-            for j, col in enumerate(row[row_offset:]):
-                if math.isnan(col):
-                    yield i + col_offset, j + row_offset 
-    
     
     def get_var_label(ar, row, var_column = 0):
         return ar[row, var_column]
