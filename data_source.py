@@ -18,10 +18,15 @@ data_proxy = [ ("GDP", 2013, 66190.11992)
 
 def check_get_historic_data_as_dataframe():
     """
-    >>> check_get_controls_as_dataframe() 
-    True    
+    >>> check_get_historic_data_as_dataframe()
+    True
     """
-    return get_sample_historic_data_as_dataframe() == get_historic_data_as_dataframe()
+    df1 = get_sample_historic_data_as_dataframe()
+    df2 = get_historic_data_as_dataframe()
+    
+    # The following returns a dataframe object
+    # return get_sample_historic_data_as_dataframe() == get_historic_data_as_dataframe()
+    return df1.equals(df2)
        
 def get_sample_historic_data_as_dataframe():
     #todo: must return a dataframe based on *data_proxy*
@@ -32,14 +37,11 @@ def get_sample_historic_data_as_dataframe():
         
 def get_historic_data_as_dataframe():
     #todo: must return a dataframe based on *data_proxy*
-    #z = { "GDP" : [66190.11992, 71406.3992 ]
-    #      , "GDP_IQ": [101.3407976, 100.6404858]       
-    #      , "GDP_IP": [105.0467483, 107.1941886]}
+    
     # Read dataframe
     df = pd.DataFrame(data_proxy, columns=['prop', 'time', 'val'])
     # Pivot by time
-    # pd.DataFrame(z, index = [2013, 2014])
-    return df.pivot(index='prop', columns='time', values='val')
+    return df.pivot(index='time', columns='prop', values='val')
         
 def get_data(label, year, data_proxy):
     slice = [x for x in data_proxy if x[0] == label]
@@ -81,7 +83,9 @@ def check_get_controls_as_dataframe():
     True
     
     """
-    return get_sample_controls_as_dataframe() == get_controls_as_dataframe()
+    df1 = get_sample_controls_as_dataframe()
+    df2 = get_controls_as_dataframe()
+    return df1.equals(df2)
     
 def get_sample_controls_as_dataframe():    
     z = {'GDP_IP' : [95.0, 102.5],
@@ -95,7 +99,7 @@ def get_controls_as_dataframe():
     #return pd.DataFrame(z, index=[2015, 2016])
     # todo-again: must pass check_get_controls_as_dataframe(): doctest
     df = pd.DataFrame(controls_proxy, columns=['prop', 'time', 'val'])
-    return df.pivot(index='prop', columns='time', values='val')
+    return df.pivot(index='time', columns='prop', values='val')
 
 
 def get_years_as_list():
