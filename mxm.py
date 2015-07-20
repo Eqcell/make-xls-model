@@ -1,7 +1,7 @@
-from data_source import get_specifcation, get_sample_specification
+from data_source import get_sample_specification #, get_specification
 from xl_fill import make_wb_array
-from backend import write_output_to_xls
-from yaml_parser import get_user_param, get_default_param
+from xls_io import write_output_to_xls
+#from yaml_parser import get_user_param, get_default_param
 
 ####### 
 ####### 1. Get user input
@@ -22,13 +22,15 @@ from yaml_parser import get_user_param, get_default_param
 # model_dict, view_dict = get_specification(model_user_param_dict, view_user_param_dict)
 # get defaults 
 model_spec, view_spec = get_sample_specification()
+#print(model_spec)
+#print(view_spec)
 
 
 ####### 
 ####### 3. Do main job
 #######  
 # create an numpy array, representing resulting worksheet
-wb_array = make_wb_array(model_spec, view_spec)
+wb_array = make_wb_array() # (wb_array, view_spec)
 
 
 ####### 
@@ -36,7 +38,7 @@ wb_array = make_wb_array(model_spec, view_spec)
 #######  
 # write array to output excel file 
 # note: upon implementation can be a new sheet in same file (e.g. xlwings, even for an open file)
-write_output_to_xls(wb_array, view_dict)
+write_output_to_xls(wb_array, view_spec)
 
 #
 #     if no user specification - write all controls in orginal order,
