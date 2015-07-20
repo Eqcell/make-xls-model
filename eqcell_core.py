@@ -1,6 +1,6 @@
 # ***************** new code *****************
 from sympy import var
-from xl_fill import TIME_INDEX_VARIABLES
+TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
 
 def get_excel_ref(cell):  
     """
