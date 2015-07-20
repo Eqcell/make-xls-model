@@ -1,5 +1,27 @@
+# coding: utf-8
+"""
+   Generate Excel file with ordered rows containing Excel formulas 
+   that allow to calculate forecast values based on historic data, 
+   equations and forecast parameters. Order of rows in Excel file 
+   controlled by template definition. Start year specified as input.
+
+   Input:  
+        data
+        equations
+        names
+        controls (forecast parameters)
+        formats 
+           xl_filename
+           sheet
+           start_year
+           row_labels        
+        
+   Output: 
+        macro.xls
+        (an array of values to be written to macro.xls)
+"""
+
 import numpy as np
-# import math
 import pandas as pd
 import re
 from pprint import pprint
