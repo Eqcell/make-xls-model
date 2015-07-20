@@ -50,8 +50,15 @@ def get_dataframe_before_equations(data_df = None, controls_df = None, var_label
     #
     #       not todo: resove possible conflicts in data_df/control_df columns and  var_label_list   
     #       not todo: default behaviour in column first lists data_df, then elements of controls_df, which are not in controls_df ('is_forcast' in example)
-    #       not todo: no check of years continuity     
-    return _internal_get_dataframe_before_equations()
+    #       not todo: no check of years continuity
+    #pprint(data_df)
+    #pprint(controls_df)
+    #pprint(var_label_list)
+    
+    # We first concatenate columns
+    df = pd.concat([data_df, controls_df])
+    df.columns = var_label_list
+    return df
 
 def _internal_get_dataframe_before_equations():    
     """

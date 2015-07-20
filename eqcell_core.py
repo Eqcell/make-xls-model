@@ -6,13 +6,6 @@ def get_excel_ref(cell):
     """
     TODO: test below fails with strange message, need to fix
     
-    Failed example:
-    get_excel_ref((0,0))
-    Expected:
-    'A1'
-    Got:
-    'A1'
-    
     >>> get_excel_ref((0,0))
     'A1'
     
@@ -33,23 +26,26 @@ def get_xl_col_litteral(zero_based_col_number):
     >>> get_xl_col_litteral(3-1)
     'C'
     """
+    # GL This (eventually) needs more columns?
     return "ABCDEFGHIJK"[zero_based_col_number]
 
 def sympyfy_formula(string):
     return evaluate_variable(string)
 
 def evaluate_variable(x):
-        try:
-            x = eval(x)     # converting the formula into sympy expressions
-        except NameError:
-            raise NameError('Undefined variables in formulas, check excel sheet')
-        return x
+    # GL: here we probably need some proper parsing so that we can add
+    # support for extra excel formulas and provide more detailed  error codes
+    try:
+        x = eval(x)     # converting the formula into sympy expressions
+    except NameError:
+        raise NameError('Undefined variables in formulas, check excel sheet')
+    return x
 
 def check_parse_equation_to_xl_formula():   
     """
     >>> check_parse_equation_to_xl_formula()
     =D2*E3*E4/10000
-    """    
+    """
     dict_formula = {'dependent_var': 'GDP(t)',
          'formula': 'GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100'}
    
@@ -63,7 +59,6 @@ def get_cell_row(dict_variables, var_name):
 
 
 def parse_equation_to_xl_formula(dict_formula, dict_variables, column):
-
     varirable_list = [x for x in dict_variables.keys()] + TIME_INDEX_VARIABLES
 
     # declares sympy variables
