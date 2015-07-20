@@ -1,164 +1,189 @@
+# coding: utf-8
+"""
+Data sources for the model and output.
 
-# ***************************************************************************** 
-# Proxies of data import form xls/csv/mysql (to speed up development / testing)
-# *****************************************************************************
+Current entry point: 
+    model_spec, view_spec = get_sample_specification()
+        
+Needed: 
+    get_specification(model_user_param_dict, view_user_param_dict)
+    
+"""
 
-import io
-import csv
 from pprint import pprint
 import pandas as pd
 
-data_proxy = [ ("GDP", 2013, 66190.11992)
+###########################################################################
+## Proxy data (returned by get_sample* functions ) 
+###########################################################################
+
+# label, year, value
+DATA_PROXY = [ ("GDP", 2013, 66190.11992)
         , ("GDP",    2014, 71406.3992)
         , ("GDP_IQ", 2013, 101.3407976)
         , ("GDP_IQ", 2014, 100.6404858)
         , ("GDP_IP", 2013, 105.0467483)
-        , ("GDP_IP", 2014, 107.1941886)
-        ] 
+        , ("GDP_IP", 2014, 107.1941886) ] 
 
+# label, year, value
+CONTROLS_PROXY = [("GDP_IP", 2015, 95.0)
+        , ("GDP_IQ", 2015, 115.0)
+        , ("GDP_IP", 2016, 102.5)
+        , ("GDP_IQ", 2016, 113.0)
+        , ("is_forecast", 2015, 1)
+        , ("is_forecast", 2016, 1)
+        ]        
+        
+# title, label, group, level, precision
+# ERROR: wont print cyrillic charactes, only whitespace.
+NAMES_CSV_PROXY = [("ВВП",                      "GDP",    "Нацсчета", 1, 0),
+                   ("Индекс физ.объема ВВП",    "GDP_IQ", "Нацсчета", 2, 1),
+                   ("Дефлятор ВВП",	            "GDP_IP", "Нацсчета", 2, 1)]
+ 
+EQ_SAMPLE = ["GDP(t) = GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100"]
+
+ROW_LABELS_IN_OUTPUT = ["GDP", "GDP_IP", "GDP_IQ", "is_forecast"]
+
+# final_dataframe_proxy = """		2014	2015	2016
+# ВВП	gdp	71406	=D3*E4/100*E5/100	=E3*F4/100*F5/100
+# Индекс физ.объема ВВП	gdp_Iq	100,6	95	102
+# Дефлятор ВВП	gdp_Ip	107,2	110	112
+# """  
+
+def get_sample_specification():
+    model_spec = [
+    ("Historic data as df",       get_sample_historic_data_as_dataframe() ),
+    ("Names as dict",             get_sample_names_as_dict() ),
+    ("Equations as list",         get_sample_equations() ),
+    ("Control parameters as df",  get_sample_controls_as_dataframe() )] 
+    
+    # requires workaround
+    view_spec = [
+    ['Excel filename' ,    'model.xls'],
+    ['Sheet name' ,        'model'],
+    ['List of variables',  ROW_LABELS_IN_OUTPUT] 
+    ]
+    
+    return model_spec, view_spec
+
+
+
+###########################################################################
+## General handling
+###########################################################################
+        
+def make_dataframe_based_on_list_of_tuples(lt):
+    """Returns a dataframe with years in rows and variables in columns. 
+       *lt* is a list of tuples like *data_proxy* and *controls_proxy*"""  
+    
+    # Read dataframe
+    df = pd.DataFrame(lt, columns=['prop', 'time', 'val'])
+    # Pivot by time
+    return df.pivot(index='time', columns='prop', values='val')
+        
+###########################################################################
+## Historic data 
+###########################################################################
+        
 def check_get_historic_data_as_dataframe():
     """
     >>> check_get_historic_data_as_dataframe()
     True
     """
-    df1 = get_sample_historic_data_as_dataframe()
-    df2 = get_historic_data_as_dataframe()
-    
+    df1 = _internal_sample_historic_data_as_dataframe()
+    df2 = get_sample_historic_data_as_dataframe()    
     # The following returns a dataframe object
     # return get_sample_historic_data_as_dataframe() == get_historic_data_as_dataframe()
     return df1.equals(df2)
        
-def get_sample_historic_data_as_dataframe():
-    #todo: must return a dataframe based on *data_proxy*
+def _internal_sample_historic_data_as_dataframe():
+    # Used for testing in check_get_historic_data_as_dataframe
     z = { "GDP" : [66190.11992, 71406.3992 ]
           , "GDP_IQ": [101.3407976, 100.6404858]       
           , "GDP_IP": [105.0467483, 107.1941886]}
     return pd.DataFrame(z, index = [2013, 2014])
-        
-def get_historic_data_as_dataframe():
-    #todo: must return a dataframe based on *data_proxy*
+
+def get_sample_historic_data_as_dataframe():
+    return make_dataframe_based_on_list_of_tuples(DATA_PROXY)
     
-    # Read dataframe
-    df = pd.DataFrame(data_proxy, columns=['prop', 'time', 'val'])
-    # Pivot by time
-    return df.pivot(index='time', columns='prop', values='val')
-        
-def get_data(label, year, data_proxy):
-    slice = [x for x in data_proxy if x[0] == label]
-    return  [x for x in slice if x[1] == year][0]
+def get_historic_data_as_dataframe():
+    pass
 
+    
+###########################################################################
+## Names 
+###########################################################################
 
-def yield_names_proxy():
-    #names_csv_proxy ="""title	label	group	level	precision
-    names_csv_proxy ="""ВВП	GDP	Нацсчета	1	0
-Индекс физ.объема ВВП	GDP_IQ	Нацсчета	2	1
-Дефлятор ВВП	GDP_IP	Нацсчета	2	1"""    
-    text_stream = io.StringIO(names_csv_proxy)
-    # better use csv.DictReader and work with dict in get_names_as_dict()
-    reader = csv.reader(text_stream, delimiter='\t')
-    for row in reader:
-        yield row
+def get_sample_names_as_dict():       
+    return {x[1]:x[0] for x in NAMES_CSV_PROXY}
 
 def get_names_as_dict():
     """Make name parameter dictionary callable by names_dict[label][param].
     """
-    names_dict = {}
-    for row in yield_names_proxy():      
-        sub_dict = {}
-        sub_dict['title'] = row[0]
-        sub_dict['precision'] = row[4]        
-        new_entry_dict = {row[1]: sub_dict}
-        names_dict.update(new_entry_dict)
-    return names_dict
-    
-controls_proxy = [("GDP_IP", 2015, 95.0)
-        , ("GDP_IQ", 2015, 115.0)
-        , ("GDP_IP", 2016, 102.5)
-        , ("GDP_IQ", 2016, 113.0)
-        ]
-        
-def check_get_controls_as_dataframe():
-    """
-    >>> check_get_controls_as_dataframe() 
-    True
-    
-    """
-    df1 = get_sample_controls_as_dataframe()
-    df2 = get_controls_as_dataframe()
-    return df1.equals(df2)
-    
-def get_sample_controls_as_dataframe():    
-    z = {'GDP_IP' : [95.0, 102.5],
-         'GDP_IQ' : [115.0, 113.0]}   
-    return pd.DataFrame(z, index=[2015, 2016])
+    pass
+
+###########################################################################
+## Equations 
+###########################################################################
+
+def get_sample_equations():
+    return EQ_SAMPLE
+
+def get_equations():
+    pass
+  
+###########################################################################
+## Control parameters 
+###########################################################################
+
+def get_sample_controls_as_dataframe():
+    return make_dataframe_based_on_list_of_tuples(CONTROLS_PROXY)
     
 def get_controls_as_dataframe():
-    #todo: must return a dataframe based on *controls_proxy*
-    #z = {'GDP_IP' : [95.0, 102.5],
-    #     'GDP_IQ' : [115.0, 113.0]}   
-    #return pd.DataFrame(z, index=[2015, 2016])
-    # todo-again: must pass check_get_controls_as_dataframe(): doctest
-    df = pd.DataFrame(controls_proxy, columns=['prop', 'time', 'val'])
-    return df.pivot(index='time', columns='prop', values='val')
-
+    pass
+    
+###########################################################################
+## Years?
+###########################################################################
 
 def get_years_as_list():
     return [y for y in range(get_start_year(),get_max_control_year() + 1)]
 
 def get_max_control_year():
-    return max([x[1] for x in controls_proxy])
+    return max([y[1] for y in controls_proxy])
 
-def get_equations():
-    return ["GDP(t) = GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100"]
+###########################################################################
+## Output parameters - requires workaround
+###########################################################################
 
 # LIMITATION: One sheet per output Excel file
-def get_sheet_format():
-    return { 'filename':'macro.xls' 
-        , 'sheet': 'gdp_forecast'
-        , 'start_year': 2013
-        , 'rows': ["GDP", "GDP_IP", "GDP_IQ"]
-        }
+# def get_sheet_format():
+    # return { 'filename':'macro.xls' 
+        # , 'sheet': 'gdp_forecast'
+        # , 'start_year': 2013
+        # , 'rows': ["GDP", "GDP_IP", "GDP_IQ"]
+        # }
         
-def get_xl_filename():
-    return get_sheet_format()['filename']
+# def get_xl_filename():
+    # return get_sheet_format()['filename']
       
-def get_sheet_name():
-    return get_sheet_format()['sheet']
+# def get_sheet_name():
+    # return get_sheet_format()['sheet']
         
-def get_start_year():        
-    return get_sheet_format()['start_year']
+# def get_start_year():        
+    # return get_sheet_format()['start_year']
         
-def get_row_labels():        
-    return get_sheet_format()['rows']
-
-    
-final_dataframe_proxy = """		2014	2015	2016
-ВВП	gdp	71406	=D3*E4/100*E5/100	=E3*F4/100*F5/100
-Индекс физ.объема ВВП	gdp_Iq	100,6	95	102
-Дефлятор ВВП	gdp_Ip	107,2	110	112
-"""        
-
+# def get_row_labels():        
+    # return get_sheet_format()['rows']   
+      
+def print_specification(model_and_view):
+   for mv in model_and_view:               
+        for spec in mv:
+            print("\n------ {}:".format(spec[0]))
+            pprint(spec[1])
+      
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-
-    data = get_historic_data_as_dataframe()  
-    names = get_names_as_dict()
-    equations = get_equations()
-    controls = get_controls_as_dataframe()
-    years = get_years_as_list()
-    row_labels = get_row_labels()
-
-    print_dict = { "------ Data:":data,
-                   "------ Names:":names,
-                   "------ Equations:": equations, 
-                   "------ Control forecast parameters:":controls,
-                   "------ Years:": years,
-                   "------ Row labels:":row_labels
-                   }
-    for header, var in print_dict.items():
-        print()
-    #    print(header)
-    #    pprint(var)
-
-    #pprint(final_dataframe_proxy)
+    
+    print_specification(get_sample_specification())             
