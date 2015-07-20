@@ -1,17 +1,37 @@
 import numpy as np
-import math
+# import math
 import pandas as pd
 import re
 from pprint import pprint
 
-from data_source import get_sample_historic_data_as_dataframe, get_names_as_dict
-from data_source import get_equations
-from data_source import get_sample_controls_as_dataframe
-from data_source import get_row_labels, get_years_as_list, get_xl_filename
+from data_source import get_sample_specification, print_specification
+from eqcell_core import parse_equation_to_xl_formula, TIME_INDEX_VARIABLES
 
-TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
+def check_get_dataframe_before_equations():
+    """
+    >>> check_get_dataframe_before_equations()
+    True
+    """
+    df1 = _internal_get_dataframe_before_equations()    
+    df2 = get_dataframe_before_equations()    
+    return df1.equals(df2)
 
-def get_dataframe_before_equations():    
+
+def get_dataframe_before_equations(data_df = None, controls_df = None, var_label_list = None):    
+    """
+       This is a dataframe obtained by merging historic data and future values of control variables.      
+    """
+    # TODO: must merge data_df, controls_df into a common dataframe
+    #       years are extended to include both data_df years and controls_df years
+    #       missing values are None
+    #       order of columns is same as listed in var_label_list
+    #
+    #       not todo: resove possible conflicts in data_df/control_df columns and  var_label_list   
+    #       not todo: default behaviour in column first lists data_df, then elements of controls_df, which are not in controls_df ('is_forcast' in example)
+    #       not todo: no check of years continuity     
+    return _internal_get_dataframe_before_equations()
+
+def _internal_get_dataframe_before_equations():    
     """
        This is a dataframe obtained by merging historic data and future values of control variables.
        WARNING: currently returns a stub. 
@@ -19,13 +39,14 @@ def get_dataframe_before_equations():
     return pd.DataFrame(
           {   "GDP" : [66190.11992, 71406.3992, None, None]
           , "GDP_IQ": [101.3407976, 100.6404858, 95.0, 102.5]       
-          , "GDP_IP": [105.0467483, 107.1941886, 115.0, 113.0]} 
+          , "GDP_IP": [105.0467483, 107.1941886, 115.0, 113.0]
+          , "is_forecast": [None, None, 1, 1] } 
           ,   index = [2013, 2014, 2015, 2016]
           )
           
 def get_array_before_equations(df):
     """
-       Decorate Dataframe with extra row (years) and column (var names) 
+       Decorate *df* with extra row (years) and column (var names) 
        and return as ndarray with object types. In resulting array some values for years
        will be NaN/nan. These are cells where Excel formulas need to be inserted.      
       
@@ -34,10 +55,10 @@ def get_array_before_equations(df):
        
        Not todo: decorate also with a column of variable text descriptions (first column)
        """    
-    ar0 = df.as_matrix().transpose().astype(object)
-    labels = get_row_labels()
-    ar = np.insert(ar0, 0, labels, axis = 1)
-    years = [""] + get_years_as_list()
+    ar = df.as_matrix().transpose().astype(object)
+    labels = df.columns.tolist() 
+    ar = np.insert(ar, 0, labels, axis = 1)
+    years = [""] + df.index.tolist()
     ar = np.insert(ar, 0, years, axis = 0)
     return ar
 
@@ -46,15 +67,12 @@ def get_sample_array_after_equations():
     [['', 2013, 2014, 2015, 2016]
     ,['GDP', 66190.11992, 71406.3992, '=C2*D3*D4/10000', '=D2*E3*E4/10000']
     ,['GDP_IP', 105.0467483, 107.1941886, 115.0, 113.0]
-    ,['GDP_IQ', 101.3407976, 100.6404858, 95.0, 102.5]]
+    ,['GDP_IQ', 101.3407976, 100.6404858, 95.0, 102.5]
+    ,['is_forecast', "", "", 1, 1]]
     , dtype=object)
     
-    # WARNING: actual intension was '=C2*D3/100*D4/100', '=C2*D3/100*D4/100'
-
+    # WARNING: actual intention was '=C2*D3/100*D4/100', '=C2*D3/100*D4/100'
    
-def get_excel_formula(cell, equation):
-    return "=B2"
-
 
 def unique(list_):
     """Returns unique elements from list.
@@ -83,7 +101,6 @@ def strip_timeindex(str_):
     else:
         return None
         
-        
 def test_parse_to_formula_dict():    
     """
     >>> test_parse_to_formula_dict()
@@ -103,22 +120,71 @@ def test_parse_to_formula_dict():
     ]
     for input_eq, expected_output in zip(inputs,expected_outputs):
        print(expected_output == parse_to_formula_dict(input_eq))
-        
-        
+
 def parse_to_formula_dict(equations):
     """Returns a dict with left and right hand side of equations, referenced by variable name in keys."""
     parsed_eq_dict = {}
     for eq in equations:
-        #eq = eq.strip()
         dependent_var, formula = eq.split('=')
         key = strip_timeindex(dependent_var)
         parsed_eq_dict[key] = {'dependent_var': dependent_var.strip(), 'formula': formula.strip()}
     return parsed_eq_dict
 
+def get_variable_rows_as_dict(array, column = 0):
+        variable_to_row_dict = {}        
+        for i, label in enumerate(array[:,column]):           
+            variable_to_row_dict[label] = i              
+        #LATER: cut off one row (with years)
+        #LATER: compare to full variable list
+        return variable_to_row_dict
+
+def get_xl_formula(cell, var_name):
+        """
+        cell is (row, col) tuple
+        varname is like 'GDP'
+        """ 
+        try:        
+            equation = formulas_dict[var_name]
+            variables = get_variable_rows_as_dict(ar)
+            time_period = cell[1]
+            print (time_period, equation, variables)
+            return parse_equation_to_xl_formula(equation, variables, time_period)
+        except KeyError:
+            return ""
+    
+def get_var_label(ar, row, var_column = 0):
+        return ar[row, var_column]
+        # better - check is it is a valid variable name
+        # var_list = unique(controls.columns.values.tolist() + row_labels)
+
+def fill_array_with_excel_equations(ar):
+        for cell in yield_cells_for_filling(ar):
+            var_name = get_var_label(ar, cell[0])
+            ar[cell] = get_xl_formula(cell, var_name)
+        return ar        
+
+def get_xl_formula(cell, var_name, formulas_dict, variables_dict):
+        """
+        cell is (row, col) tuple
+        varname is like 'GDP'
+        """ 
+        try:        
+            equation = formulas_dict[var_name]
+            time_period = cell[1]            
+            return parse_equation_to_xl_formula(equation, variables_dict, time_period)
+        except KeyError:
+            return ""        
+
+def get_var_label(ar, row, var_column = 0):
+        return ar[row, var_column]
+        # better - check is it is a valid variable name
+        # var_list = unique(controls.columns.values.tolist() + row_labels)
+    
 def yield_cells_for_filling(ar):
     """
-    TODO: must yeild coordinates of nan values from data area in *ar* 
-          data area is all of ar, but not row 0 or col 0
+    Yields coordinates of nan values from data area in *ar* 
+    Data area is all of ar, but not row 0 or col 0
+          
     Example:
     
     >>> gen = yield_cells_for_filling([['', 2013, 2014, 2015, 2016],
@@ -137,98 +203,81 @@ def yield_cells_for_filling(ar):
     # We loop and check which indexes correspond to nan
     for i, row in enumerate(ar[col_offset:]):
         for j, col in enumerate(row[row_offset:]):
-            if math.isnan(col):
-                yield i + col_offset, j + row_offset 
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
+            if np.isnan(col):
+            # if math.isnan(col):
+                yield i + col_offset, j + row_offset     
     
-    # this is import of user-inputed variables from a different module
-    data = get_sample_historic_data_as_dataframe()  
-    names = get_names_as_dict()
-    equations = get_equations()
-    controls = get_sample_controls_as_dataframe()
-    print(controls)
-    row_labels = get_row_labels()
-    years = get_years_as_list()
+def fill_array_with_excel_formulas(ar, formulas_dict):
+        variables_dict = get_variable_rows_as_dict(ar)
+        for cell in yield_cells_for_filling(ar):
+            var_name = get_var_label(ar, cell[0])
+            ar[cell] = get_xl_formula(cell, var_name, formulas_dict, variables_dict)
+        return ar  
+
+def check_wb_array():
+    """
+    >>> check_wb_array()
+    True
+    """
+    ar1 = make_wb_array()
+    ar2 = get_sample_array_after_equations()    
+    return np.array_equal(ar1, ar2)
+        
+def make_wb_array(model_dict = None, view_dict = None):
+    # WARNING: must change to required arguements later
+    if model_dict is None or view_dict is None:
+        model_spec, view_spec = get_sample_specification()
+        
+    # WARNING: names_dict not used
+    [data_df, names_dict, equations_list, controls_df] = [s[1] for s in model_spec]
+    [xl_file, sheet, var_label_list] = [s[1] for s in view_spec]
+
+    df = get_dataframe_before_equations(data_df, controls_df, var_label_list)
+    ar = get_array_before_equations(df)
+
+    formulas_dict = parse_to_formula_dict(equations_list)
+    ar = fill_array_with_excel_formulas(ar, formulas_dict)        
+
+    return ar
+    
+        
+if __name__ == "__main__":
+
+    # unpack variables locally 
+    model_spec, view_spec = get_sample_specification()
+    [data_df, names_dict, equations_list, controls_df] = [s[1] for s in model_spec]
+    [xl_file, sheet, var_label_list] = [s[1] for s in view_spec]
     
     # task formulation - inputs
-    print("\n*** In this module on input we have:")
+    print("\n****** Module inputs:")
     
-    print_dict = [ ["------ Data:",data],
-                   ["------ Names:",names],
-                   ["------ Equations:",equations], 
-                   ["------ Control forecast parameters:",controls],
-                   ["------ Years:",years],
-                   ["------ Row labels:",row_labels]
-                   ]
-    for item in print_dict:
-        print()
-        print(item[0])
-        pprint(item[1])
+    print_specification(get_sample_specification()) 
     
     # task formulation - final result
-    print("\n*** Task - produce array with formulas (intent - it \"Excel-dumpable\"):")
+    print("\n****** Task - produce array with values and string-like formulas (intent - later write it to Excel)")
+    print("Target array:")
     print(get_sample_array_after_equations()) 
     # end task formulation   
     
     # Solution:
-    print("\n*** Solution flow:")
-    df = get_dataframe_before_equations()
+    print("\n******* Solution flow:")    
+    print("*** Array before equations:")
+    df = get_dataframe_before_equations(data_df, controls_df, var_label_list)
     ar = get_array_before_equations(df)
-    
-    print("\n*** Array before equations:")
     print(ar)
     
     print("\n***  Split formulas:")
-    formulas = parse_to_formula_dict(equations)
-    pprint(formulas)
+    formulas_dict = parse_to_formula_dict(equations_list)
+    pprint(formulas_dict)
     
     print("\n***  Assign variables to array rows:")
-    
-    # variables = parse_to_variables_dict(...)
-    def get_variable_rows_in_array_as_dict(array, column = 0):
-        variable_to_row_dict = {}
-        for i, label in enumerate(array[:,column]):            
-            variable_to_row_dict[label] = i            
-        return variable_to_row_dict
-    
-    variable_to_row_dict = get_variable_rows_in_array_as_dict(ar)
+    variable_to_row_dict = get_variable_rows_as_dict(ar)
     pprint(variable_to_row_dict)
     
-    print("\n***  Formula creation:")
-    def get_xl_formula(cell, var_name):
-        """
-        cell is (row, col) tuple
-        varname is like 'GDP'
-        """        
-        equation = formulas[var_name]
-        variables = get_variable_rows_in_array_as_dict(ar)
-        time_period = cell[1]
-        return parse_equation_to_xl_formula(equation, variables, time_period)
-    
-    #def parse_equation_to_xl_formula(equation, variables, time_period):
-    #    return "=<xl-style formula here>"   
-    
-    from eqcell_core import parse_equation_to_xl_formula
-    # parse_equation_to_xl_formula(dict_formula, dict_variables, column)
-    
     print("\n***  Iterate over NaN in data area + fill with stub formula:")    
+    ar = fill_array_with_excel_formulas(ar, formulas_dict)
     
-    def get_var_label(ar, row, var_column = 0):
-        return ar[row, var_column]
-        # better - check is it is a valid variable name
-        # var_list = unique(controls.columns.values.tolist() + row_labels)
-    
-    def fill_array_with_excel_equations(ar):
-        for cell in yield_cells_for_filling(ar):
-            var_name = get_var_label(ar, cell[0])
-            ar[cell] = get_xl_formula(cell, var_name)
-        return ar        
-
-    ar = fill_array_with_excel_equations(ar)
-    print("\n*** Current array:")
+    print("\n*** Resulting array:")
     print(ar)
          
     print("\n*** Must be like:")
@@ -238,4 +287,7 @@ if __name__ == "__main__":
     
     print("\n*** Solution complete: " + str(is_equal))
     print()
-    print(np.equal(ar, get_sample_array_after_equations())) 
+    print(np.equal(ar, get_sample_array_after_equations()))
+    
+    import doctest
+    doctest.testmod()
