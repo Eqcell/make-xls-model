@@ -42,7 +42,8 @@ NAMES_CSV_PROXY = [("ВВП",                      "GDP",    "Нацсчета",
  
 EQ_SAMPLE = ["GDP(t) = GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100"]
 
-ROW_LABELS_IN_OUTPUT = ["GDP", "GDP_IP", "GDP_IQ", "is_forecast"]
+# change in test setting: one variable not in output 
+ROW_LABELS_IN_OUTPUT = ["GDP", "GDP_IP", "GDP_IQ"] # , "is_forecast"]
 
 # final_dataframe_proxy = """		2014	2015	2016
 # ВВП	gdp	71406	=D3*E4/100*E5/100	=E3*F4/100*F5/100
