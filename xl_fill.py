@@ -61,7 +61,7 @@ def get_dataframe_before_equations(data_df = None, controls_df = None, var_label
     # Subsetting a union of 'data_df' and 'controls_df', protected for error.
     try: 
        return df[var_label_list]
-    except:
+    except ValueError:
        print ("Error handling dataframes in get_dataframe_before_equations()")
        return None
     
