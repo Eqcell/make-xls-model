@@ -3,20 +3,22 @@
 Data sources for the model and output.
 
 Current entry point: 
-    model_spec, view_spec = get_sample_specification()
-        
-Needed: 
-    get_specification(model_user_param_dict, view_user_param_dict)
+    model_spec, view_spec = get_specification()
+    model_spec, view_spec = get_mock_specification(user_input)
     
 """
-
 from pprint import pprint
 import pandas as pd
+import numpy as np
+
+
 
 ###########################################################################
-## Proxy data (returned by get_sample* functions ) 
+## Sample (mock) proxies as func and constants - to use in this file
 ###########################################################################
 
+    
+##### Pair for testing
 # label, year, value
 DATA_PROXY = [ ("GDP", 2013, 66190.11992)
         , ("GDP",    2014, 71406.3992)
@@ -24,7 +26,14 @@ DATA_PROXY = [ ("GDP", 2013, 66190.11992)
         , ("GDP_IQ", 2014, 100.6404858)
         , ("GDP_IP", 2013, 105.0467483)
         , ("GDP_IP", 2014, 107.1941886) ] 
-
+        
+DATA_PROXY_AS_DF = pd.DataFrame(
+             { "GDP": [66190.11992, 71406.3992 ]
+          , "GDP_IQ": [101.3407976, 100.6404858]       
+          , "GDP_IP": [105.0467483, 107.1941886]}
+          , index = [2013, 2014])
+          #[["GDP", "GDP_IQ", "GDP_IP"]]
+    
 # label, year, value
 CONTROLS_PROXY = [("GDP_IQ", 2015, 95.0)
         , ("GDP_IP", 2015, 115.0)
@@ -43,22 +52,47 @@ NAMES_CSV_PROXY = [("ВВП",                      "GDP",    "Нацсчета",
 EQ_SAMPLE = ["GDP(t) = GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100"]
 
 # change in test setting: one variable not in output 
-ROW_LABELS_IN_OUTPUT = ["GDP", "GDP_IP", "GDP_IQ"] # , "is_forecast"]
+ROW_LABELS_IN_OUTPUT = ["GDP", "GDP_IQ", "GDP_IP"] # , "is_forecast"]
 
-# final_dataframe_proxy = """		2014	2015	2016
-# ВВП	gdp	71406	=D3*E4/100*E5/100	=E3*F4/100*F5/100
-# Индекс физ.объема ВВП	gdp_Iq	100,6	95	102
-# Дефлятор ВВП	gdp_Ip	107,2	110	112
-# """  
+##########################################################################
+## Sample (mock) proxies as func - to import outside this file 
+###########################################################################
 
-def get_sample_specification():
-    model_spec = [
-    ("Historic data as df",       get_sample_historic_data_as_dataframe() ),
-    ("Names as dict",             get_sample_names_as_dict() ),
-    ("Equations as list",         get_sample_equations() ),
-    ("Control parameters as df",  get_sample_controls_as_dataframe() )] 
+def _sample_for_xfill_dataframe_before_equations():    
+    z = pd.DataFrame(
+          {   "GDP" : [66190.11992, 71406.3992, None, None]
+          , "GDP_IQ": [101.3407976, 100.6404858, 95.0, 102.5]       
+          , "GDP_IP": [105.0467483, 107.1941886, 115.0, 113.0]          
+          , "is_forecast": [None, None, 1, 1]} 
+          ,   index = [2013, 2014, 2015, 2016]          
+          )
+          
+    # Test setting: dataframe before equations has less columns than union of controls and data
+    return z[ROW_LABELS_IN_OUTPUT]
+
+def _sample_for_xfill_array_after_equations():
+    return np.array(   
+    [['', 2013, 2014, 2015, 2016]
+    ,['GDP', 66190.11992, 71406.3992, '=C2*D3*D4/10000', '=D2*E3*E4/10000']
+    ,['GDP_IQ', 101.3407976, 100.6404858, 95.0, 102.5]
+    ,['GDP_IP', 105.0467483, 107.1941886, 115.0, 113.0]
+    #,['is_forecast', "", "", 1, 1]
+    ]
+    , dtype=object)    
+    # WARNING: actual intention was '=C2*D3/100*D4/100', '=C2*D3/100*D4/100'
     
-    # requires workaround
+###########################################################################
+## Entry points
+###########################################################################
+
+def get_mock_specification():
+    model_spec = [
+    ("Historic data as df",       convert_tuple_to_df(DATA_PROXY)      ),
+    ("Names as dict",             {x[1]:x[0] for x in NAMES_CSV_PROXY} ),
+    ("Equations as list",         EQ_SAMPLE                            ),
+    ("Control parameters as df",  convert_tuple_to_df(CONTROLS_PROXY)  )] 
+    
+    # LATER: requires workaround
     view_spec = [
     ['Excel filename' ,    'model.xls'],
     ['Sheet name' ,        'model'],
@@ -67,18 +101,24 @@ def get_sample_specification():
     
     return model_spec, view_spec
 
-
+def get_specification(user_input):
+    pass
+      
+def print_specification(specification):             
+   for spec in specification:
+       print("\n------ {}:".format(spec[0]))
+       pprint(spec[1])
 
 ###########################################################################
 ## General handling
 ###########################################################################
         
-def make_dataframe_based_on_list_of_tuples(lt):
+def convert_tuple_to_df(tuple_):
     """Returns a dataframe with years in rows and variables in columns. 
        *lt* is a list of tuples like *data_proxy* and *controls_proxy*"""  
     
     # Read dataframe
-    df = pd.DataFrame(lt, columns=['prop', 'time', 'val'])
+    df = pd.DataFrame(tuple_, columns=['prop', 'time', 'val'])
     # Pivot by time
     return df.pivot(index='time', columns='prop', values='val')
         
@@ -91,21 +131,13 @@ def check_get_historic_data_as_dataframe():
     >>> check_get_historic_data_as_dataframe()
     True
     """
-    df1 = _internal_sample_historic_data_as_dataframe()
-    df2 = get_sample_historic_data_as_dataframe()    
-    # The following returns a dataframe object
-    # return get_sample_historic_data_as_dataframe() == get_historic_data_as_dataframe()
+    df1 = convert_tuple_to_df(DATA_PROXY)
+    df2 = DATA_PROXY_AS_DF  
+    # print("Own:")
+    # print(df1)
+    # print("Reference:")    
+    # print(df2) 
     return df1.equals(df2)
-       
-def _internal_sample_historic_data_as_dataframe():
-    # Used for testing in check_get_historic_data_as_dataframe
-    z = { "GDP" : [66190.11992, 71406.3992 ]
-          , "GDP_IQ": [101.3407976, 100.6404858]       
-          , "GDP_IP": [105.0467483, 107.1941886]}
-    return pd.DataFrame(z, index = [2013, 2014])
-
-def get_sample_historic_data_as_dataframe():
-    return make_dataframe_based_on_list_of_tuples(DATA_PROXY)
     
 def get_historic_data_as_dataframe():
     pass
@@ -115,8 +147,8 @@ def get_historic_data_as_dataframe():
 ## Names 
 ###########################################################################
 
-def get_sample_names_as_dict():       
-    return {x[1]:x[0] for x in NAMES_CSV_PROXY}
+# def get_sample_names_as_dict():       
+    # return {x[1]:x[0] for x in NAMES_CSV_PROXY}
 
 def get_names_as_dict():
     """Make name parameter dictionary callable by names_dict[label][param].
@@ -127,9 +159,6 @@ def get_names_as_dict():
 ## Equations 
 ###########################################################################
 
-def get_sample_equations():
-    return EQ_SAMPLE
-
 def get_equations():
     pass
   
@@ -137,8 +166,8 @@ def get_equations():
 ## Control parameters 
 ###########################################################################
 
-def get_sample_controls_as_dataframe():
-    return make_dataframe_based_on_list_of_tuples(CONTROLS_PROXY)
+# def get_sample_controls_as_dataframe():
+    # return convert_tuple_to_df(CONTROLS_PROXY)
     
 def get_controls_as_dataframe():
     pass
@@ -147,9 +176,11 @@ def get_controls_as_dataframe():
 ## Years?
 ###########################################################################
 
+# WARNING: usage unclear
 def get_years_as_list():
     return [y for y in range(get_start_year(),get_max_control_year() + 1)]
 
+# WARNING: usage unclear
 def get_max_control_year():
     return max([y[1] for y in controls_proxy])
 
@@ -175,16 +206,14 @@ def get_max_control_year():
     # return get_sheet_format()['start_year']
         
 # def get_row_labels():        
-    # return get_sheet_format()['rows']   
-      
-def print_specification(model_and_view):
-   for mv in model_and_view:               
-        for spec in mv:
-            print("\n------ {}:".format(spec[0]))
-            pprint(spec[1])
-      
+    # return get_sheet_format()['rows']  
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
     
-    print_specification(get_sample_specification())             
+    #print ("************* Sample (mock) specification, callable by get_mock_specification()")
+    #m, v = get_mock_specification()
+    #print_specification(m)                 
+    #print_specification(v)                 
+    #print ("\n************* End mock specification")
