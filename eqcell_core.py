@@ -60,7 +60,7 @@ def get_cell_row(dict_variables, var_name):
     return dict_variables[str(var_name)]
 
 
-def parse_equation_to_xl_formula(dict_formula, dict_variables, column):
+def parse_equation_to_xl_formula(formula_as_string, dict_variables, column):
     # TODO: dict_formula['formula'] will have a structure of this kind
     #       'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
     #
@@ -84,7 +84,7 @@ def parse_equation_to_xl_formula(dict_formula, dict_variables, column):
     var(' '.join(varirable_list))
 
    
-    right_side_expression = sympyfy_formula(dict_formula['formula'])
+    right_side_expression = sympyfy_formula(formula_as_string)
     time_period = column
     variables = dict_variables
     
