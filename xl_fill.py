@@ -69,7 +69,9 @@ def _internal_get_dataframe_before_equations():
           {   "GDP" : [66190.11992, 71406.3992, None, None]
           , "GDP_IP": [101.3407976, 100.6404858, 95.0, 102.5]       
           , "GDP_IQ": [105.0467483, 107.1941886, 115.0, 113.0]
-          , "is_forecast": [None, None, 1, 1] } 
+          # Test setting: dataframe before equations has less columns than union of controls and data
+          # , "is_forecast": [None, None, 1, 1] 
+          } 
           ,   index = [2013, 2014, 2015, 2016]
           )
           
