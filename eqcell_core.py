@@ -71,9 +71,11 @@ def parse_equation_to_xl_formula(dict_formula, dict_variables, column):
     # TODO 1: for each variable build a regex that replaces
     #         make_regex('GDP_IQ', 't-1') -> <regex>
     #         make_regex('GDP', 't-1') -> <regex>
-    # TODO 2: For each dict_variables, retrieve corresponding excel cell string. 
+    # TODO 2: For each dict_variables, retrieve corresponding excel cell string.
+    #         get_cell_name(dict_variables['GDP'], 4, time_period) -> D1
     # TODO 3: For each regex, replace the variable with the cell string
     #         formula = <regex>.sub(formula) for each <regex>
+    #         GDP[t-1] + GDP_IQ[t-1] -> D1 + D2
     # TODO 4: make consistency checks 
     #         left-hand side is always [t]. cannot accept [t-1], [t+1] or other on the left of '='
     varirable_list = [x for x in dict_variables.keys()] + TIME_INDEX_VARIABLES
