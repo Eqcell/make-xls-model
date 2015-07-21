@@ -26,10 +26,10 @@ DATA_PROXY = [ ("GDP", 2013, 66190.11992)
         , ("GDP_IP", 2014, 107.1941886) ] 
 
 # label, year, value
-CONTROLS_PROXY = [("GDP_IP", 2015, 95.0)
-        , ("GDP_IQ", 2015, 115.0)
-        , ("GDP_IP", 2016, 102.5)
-        , ("GDP_IQ", 2016, 113.0)
+CONTROLS_PROXY = [("GDP_IQ", 2015, 95.0)
+        , ("GDP_IP", 2015, 115.0)
+        , ("GDP_IQ", 2016, 102.5)
+        , ("GDP_IP", 2016, 113.0)
         , ("is_forecast", 2015, 1)
         , ("is_forecast", 2016, 1)
         ]        
