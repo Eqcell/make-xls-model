@@ -57,8 +57,14 @@ def get_dataframe_before_equations(data_df = None, controls_df = None, var_label
     
     # We first concatenate columns
     df = pd.concat([data_df, controls_df])
-    df.columns = var_label_list
-    return df
+    
+    # Subsetting a union of 'data_df' and 'controls_df', protected for error.
+    try: 
+       return df[var_label_list]
+    except:
+       print ("Error handling dataframes in get_dataframe_before_equations()")
+       return None
+    
 
 def _internal_get_dataframe_before_equations():    
     """
