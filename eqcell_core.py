@@ -46,6 +46,8 @@ def check_parse_equation_to_xl_formula():
     >>> check_parse_equation_to_xl_formula()
     =D2*E3*E4/10000
     """
+    # TODO: change round brackets to square brackets to avoid confusing 
+    #       excel functions with our variables
     dict_formula = {'dependent_var': 'GDP(t)',
          'formula': 'GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100'}
    
@@ -59,6 +61,21 @@ def get_cell_row(dict_variables, var_name):
 
 
 def parse_equation_to_xl_formula(dict_formula, dict_variables, column):
+    # TODO: dict_formula['formula'] will have a structure of this kind
+    #       'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
+    #
+    #       we want to substitute the variables with the appropriate excel
+    #       values:
+    #       =D2*E3 / 100*E4 / 100
+    
+    # TODO 1: for each variable build a regex that replaces
+    #         make_regex('GDP_IQ', 't-1') -> <regex>
+    #         make_regex('GDP', 't-1') -> <regex>
+    # TODO 2: For each dict_variables, retrieve corresponding excel cell string. 
+    # TODO 3: For each regex, replace the variable with the cell string
+    #         formula = <regex>.sub(formula) for each <regex>
+    # TODO 4: make consistency checks 
+    #         left-hand side is always [t]. cannot accept [t-1], [t+1] or other on the left of '='
     varirable_list = [x for x in dict_variables.keys()] + TIME_INDEX_VARIABLES
 
     # declares sympy variables
@@ -74,11 +91,11 @@ def parse_equation_to_xl_formula(dict_formula, dict_variables, column):
     """
     must have somewhere:
         row, col - cell location
-        x(t) = x(t-1) - equation
+        x[t] = x[t-1] - equation
         x - variable name
         variable_locations dict rows for all other variables {var1:row1, var2:row2}
     require:
-        left-hand side is always (t). cannot accept (t-1), (t+1) or other on the left of '='
+        left-hand side is always [t]. cannot accept [t-1], [t+1] or other on the left of '='
     algorithm:
         in equation we search for terms that denote variables, possibly lagged
         term = 'x(t-1)'
