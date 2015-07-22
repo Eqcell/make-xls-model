@@ -36,10 +36,12 @@ def make_wb_array(model_spec, view_spec):
     # WARNING: names_dict not used
     [data_df, names_dict, equations_list, controls_df] = [s[1] for s in model_spec]
     [xl_file, sheet, var_label_list] = [s[1] for s in view_spec]
+    print(equations_list)
 
+    
     # assemble inputs into dataframe
     df = get_dataframe_before_equations(data_df, controls_df, var_label_list)
-    
+     
     # get array with NaN at equation cells
     # WARNING: adds one column and one row, further code has hard-coded references to these rows/cols
     ar = get_array_before_equations(df)    

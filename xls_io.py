@@ -12,18 +12,23 @@ from xlwt import Workbook as xlwtWorkbook, Formula
 from datetime import datetime
 import os
     
-def write_output_to_xls(ar, view_spec):
+def write_output_to_xls(ar, view_spec, method = None):
+    # NEXT: change to view_spec parameters, unpack them
     sheet_name = "model"
+    basename = "model"
     
-    xlsx_path = "new_model0.xls"
-    write_array_to_xlsx_using_xlwt(ar, xlsx_path, sheet_name)
-    
-    xlsx_path = "new_model1.xlsx"
-    write_array_to_xlsx_using_openpyxl(ar, xlsx_path, sheet_name)
-    
-    xlsx_path = "new_model2.xlsx"
-    write_array_to_xlsx_using_xlsxwriter(ar, xlsx_path, sheet_name)
-    
+    if method == 'xlwt' or method is None:
+        xlsx_path = basename + ".xls"
+        write_array_to_xlsx_using_xlwt(ar, xlsx_path, sheet_name)
+    elif method == 'openpyxl':
+        xlsx_path = basename + ".xlsx"
+        write_array_to_xlsx_using_openpyxl(ar, xlsx_path, sheet_name)
+    elif method == 'xlsxwriter':    
+        xlsx_path = basename + ".xlsx"
+        write_array_to_xlsx_using_xlsxwriter(ar, xlsx_path, sheet_name)
+    else:
+        raise ValueError("Method for writing Excel file not defined.")
+        
 ############# iterators ################## 
 
 def to_float(a):

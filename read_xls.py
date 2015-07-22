@@ -2,32 +2,41 @@ import sys
 import os
 import pandas as pd
 import numpy as np
+from pprint import pprint
 
-df = pd.read_excel("sample_spec.xls", sheetname=0, header = None)
-print (df)
-
-ref_data_df = df.ix[1:4,1:3]
-print(ref_data_df) 
-
-ref_eq = df.ix[7:8, 1]
-
-ref_controls = None
-
-
-def get_sample_specification():
-    model_spec = [
-    ("Historic data as df",       ref_data_df ),
-    ("Names as dict",             None        ),
-    ("Equations as list",         ref_eq      ),
-    ("Control parameters as df",  get_sample_controls_as_dataframe() )] 
+def read_specification_from_xls_file(filename):
+    spec_dict = {} 
+    for sheet_info in [['data',      0],
+                       ['controls',  0],
+                       ['equations', None],
+                       ['format',    None]]:
+        df = pd.read_excel(filename, sheetname=sheet_info[0], header =  sheet_info[1])
+        spec_dict[sheet_info[0]] = df
+    return spec_dict 
     
-    # requires workaround
+def vertical_1col_df_to_list(df):
+    return df[0].values.tolist()
+    
+def get_specification(filename):
+    spec_dict = read_specification_from_xls_file(filename)
+    
+    model_spec = [
+    ("Historic data as df",       spec_dict['data'].transpose()),
+    ("Names as dict",             None        ),
+    ("Equations as list",         vertical_1col_df_to_list(spec_dict['equations']) ),
+    ("Control parameters as df",  spec_dict['controls'].transpose())] 
+    
     view_spec = [
     ['Excel filename' ,    'model.xls'],
     ['Sheet name' ,        'model'],
-    ['List of variables',  ROW_LABELS_IN_OUTPUT] 
+    ['List of variables',   vertical_1col_df_to_list(spec_dict['format'])]
     ]
-
-
-
-
+    pprint(model_spec)     
+    pprint(view_spec)
+    
+    return model_spec, view_spec 
+    
+if __name__ == '__main__':
+    m, v = get_specification("spec.xls")
+    print(m)
+    print(v)
