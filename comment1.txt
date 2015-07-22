@@ -1,0 +1,30 @@
+
+"""
+TO BE CORRECTED:
+- no variable names written to file
+- no running of all doctest tests  
+
+LIMITATIONS (by design):
+- value precisions in output xls file not corrected (can be 0 and 2)
+- one sheet ber file
+- decorations of dt_before_equations are hard-coded
+- eats cyrulic in NAMES
+"""
+
+#----------------------------------------------------------------------------
+#
+#     if no user specification - write all controls in orginal order,
+#                              - followed by data without controls in orginal order
+#                              - year depth as in historic data
+#
+
+#
+# 2015-07-20 10:46 AM
+#
+# Outline:
+# - write to xls
+# - one input xls file
+# - larger xls file (flatten folder)
+# - experiment with actual data - full cycle (flatten folder)
+# - (source + markup) vs flattened db vs db dump
+#

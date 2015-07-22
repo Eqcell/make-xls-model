@@ -12,7 +12,6 @@ import pandas as pd
 import numpy as np
 
 
-
 ###########################################################################
 ## Sample (mock) proxies as func and constants - to use in this file
 ###########################################################################
@@ -84,6 +83,12 @@ def _sample_for_xfill_array_after_equations():
 ###########################################################################
 ## Entry points
 ###########################################################################
+
+def get_proxy_specification_dict():
+    return       {'data': convert_tuple_to_df(DATA_PROXY),     
+              'controls': convert_tuple_to_df(CONTROLS_PROXY),
+             'equations': EQ_SAMPLE,
+                'format': ROW_LABELS_IN_OUTPUT }
 
 def get_mock_specification():
     model_spec = [

@@ -3,31 +3,33 @@ import os
 import pandas as pd
 import numpy as np
 from pprint import pprint
-# from xlwings import workbook
+from datetime import datetime
 
 import xlsxwriter
 from openpyxl import Workbook
 from xlwt import Workbook as xlwtWorkbook, Formula
 
-from datetime import datetime
-import os
+
     
-def write_output_to_xls(ar, view_spec, method = None):
+def write_output_to_xls(ar, view_spec):
+
     # NEXT: change to view_spec parameters, unpack them
     sheet_name = "model"
-    basename = "model"
+    xlsx_path = "D:/make-xls-model-master/spec.xls"
+    write_array_to_xlsx_using_xlwings(ar, xlsx_path, sheet_name)  
     
-    if method == 'xlwt' or method is None:
-        xlsx_path = basename + ".xls"
-        write_array_to_xlsx_using_xlwt(ar, xlsx_path, sheet_name)
-    elif method == 'openpyxl':
-        xlsx_path = basename + ".xlsx"
-        write_array_to_xlsx_using_openpyxl(ar, xlsx_path, sheet_name)
-    elif method == 'xlsxwriter':    
-        xlsx_path = basename + ".xlsx"
-        write_array_to_xlsx_using_xlsxwriter(ar, xlsx_path, sheet_name)
-    else:
-        raise ValueError("Method for writing Excel file not defined.")
+    # if method is None:
+        # write_array_to_xlsx_using_xlwings(ar, xlsx_path, sheet_name)    
+    # if method == 'xlwt' or method is None:        
+        # write_array_to_xlsx_using_xlwt(ar, xlsx_path, sheet_name)
+    # elif method == 'openpyxl':
+        # xlsx_path = replace_extension(xlsx_path)
+        # write_array_to_xlsx_using_openpyxl(ar, xlsx_path, sheet_name)
+    # elif method == 'xlsxwriter':    
+        # xlsx_path = replace_extension(xlsx_path)
+        # write_array_to_xlsx_using_xlsxwriter(ar, xlsx_path, sheet_name)
+    # else:
+        # raise ValueError("Method for writing Excel file not defined: " + method)
         
 ############# iterators ################## 
 
@@ -49,7 +51,28 @@ def iterate_over_array(ar):
                 
 def finished_writing(xlsx_path):
     print ("Finished_writing:", xlsx_path)
-                
+
+    
+    
+###############   xlwings    ###############  
+from xlwings import Workbook, Range, Sheet
+   
+def write_array_to_xlsx_using_xlwings(ar, file, sheet):    
+
+    wb = Workbook(file)
+    Sheet(sheet).activate()    
+    for i, j, val in iterate_over_array(ar):
+        Range(sheet, (i, j)).value = val  
+    wb.save()
+    
+    # WARNING: 
+    #    Range(sheet, 'A1').value = ar
+    #    works with error  
+    
+  
+    
+    
+    
 ###############   xlwt    ###############  
 
 def write_array_to_xlsx_using_xlwt(ar, xlsx_path, sheet_name):

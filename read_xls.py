@@ -3,6 +3,25 @@ import os
 import pandas as pd
 import numpy as np
 from pprint import pprint
+from data_source import get_mock_specification
+
+
+def get_specification_from_arg(arg):
+    specfile = arg["<SPEC_FILE>"]
+    
+    if arg['--selftest']:
+        model_spec, view_spec = get_mock_specification()
+    elif specfile is not None:
+        try:
+           model_spec, view_spec = get_specification(specfile)
+           return model_spec, view_spec 
+        except IOError:       
+           raise IOError("File not found: " + specfile)    
+        except:        
+           raise ValueError("Cannot read specification from file: " + specfile)
+    else:
+        raise ValueError("No inputs provided for script.") 
+        
 
 def read_specification_from_xls_file(filename):
     spec_dict = {} 
