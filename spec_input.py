@@ -1,11 +1,10 @@
-from xlwings import Workbook, Range, Sheet
-from pprint import pprint
 import pandas as pd
+from pprint import pprint
 from xl_fill import make_wb_array2
 from xlwings import Workbook, Range, Sheet
    
 ###########################################################################
-## Import from Excel workbook
+## Import from Excel workbook (using pandas)
 ###########################################################################
 
 def read_sheet(filename_, sheet_, header_):    
@@ -29,55 +28,31 @@ def get_spec_as_tuple(file):
     return s['data'], s['controls'], s['equations'], s['format']
  
 ###########################################################################
-## Export to Excel workbook
+## Export to Excel workbook (using xlwings/pywin32)
 ###########################################################################
 
-def filter_(a):
-    PRECISION = 6
-    try:
-        z = float(a)
-        if round(z) == z:
-           return int(z)
-        else:
-           return round(z, PRECISION)
-    except ValueError:
-        return a
-
-def iterate_over_array(ar):
-    for i, row in enumerate(ar):       
-         for j, val in enumerate(row):
-                yield i, j, val
-
-def write_array_to_xl_using_xlwings(ar, file, sheet):    
+def write_array_to_xl_using_xlwings(ar, file, sheet):  
+    # Note: must save file before opening   
     wb = Workbook(file)
     Sheet(sheet).activate()        
-    # LATER: check why below does not work 
-    # Range(sheet, 'A1').value = ar    
-    for i, j, val in iterate_over_array(ar):
-        Range(sheet, (i, j)).value = val  
-    wb.save() 
+    Range(sheet, 'A1').value = ar.astype(str)    
+    wb.save()
     
 ###########################################################################
+## Main entry
+###########################################################################
     
-file = 'D:/make-xls-model-master/spec.xls'
-data_df, controls_df, equations_list, var_label_list = get_spec_as_tuple(file)
-wb_array = make_wb_array2(*get_spec_as_tuple(file))
-sheet = 'model'
-
-from data_source import _sample_for_xfill_array_after_equations as ar_sample
-target_ar = ar_sample()
-
-try: 
-   write_array_to_xl_using_xlwings(target_ar, file, sheet)
-except:
-   print("ERROR")
-
-try: 
-   pass
-   # write_array_to_xl_using_xlwings(wb_array, file, sheet)
-except:
-   print("ERROR")
-   
-
+def make_xl_model(abs_filepath, sheet): 
+    # data_df, controls_df, equations_list, var_label_list = get_spec_as_tuple(abs_filepath)
+    ar = make_wb_array2(*get_spec_as_tuple(abs_filepath))
+    write_array_to_xl_using_xlwings(ar, file, sheet)  
 
 ###########################################################################
+## Sample call
+###########################################################################
+    
+if __name__ == '__main__':
+    # file = 'D:/make-xls-model-master/spec.xls'
+    file = 'D:/git/make-xls-model/spec.xls'
+    sheet = 'model'
+    make_xl_model(file`, sheet)
