@@ -1,5 +1,6 @@
 '''Module to parse formulas to their respective excel representations'''
-
+import re
+from eqcell_core import get_excel_ref
 #duplicate
 TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
 
@@ -65,31 +66,124 @@ Additional behaviour:
 """
 
 def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period):
-    # TODO: formula_as_string will have a structure of this kind
-    #       'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
-    #
-    #       we want to substitute the variables with the appropriate excel
-    #       values:
-    #       =D2*E3 / 100*E4 / 100
+    '''Equivalent method of eqcell_core, but with text-based parser
     
-    # TODO 1: for each variable build a regex that replaces
-    #         make_regex('GDP_IQ', 't-1') -> <regex>
-    #         make_regex('GDP', 't-1') -> <regex>
-    # TODO 2: For each dict_variables, retrieve corresponding excel cell string.
-    #         get_cell_name(dict_variables['GDP'], time_period) -> D1
-    # TODO 3: For each regex, replace the variable with the cell string
-    #         formula = <regex>.sub(formula) for each <regex>
-    #         GDP[t-1] + GDP_IQ[t-1] -> D1 + D2
-    pass
+    >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
+    '=B2+A3*100'
+    
+    >>> parse_equation_to_xl_formula('GDP[n] + GDP_IQ[n-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
+    '=B2+A3*100'
+    
+    If some variable is missing from 'variable_dict' raise an exception:
+    
+    >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100', # doctest: +IGNORE_EXCEPTION_DETAIL 
+    ...                              {'GDP': 1}, 1)
+    Traceback (most recent call last):  
+    ValueError: Variable 'GDP_IQ' included in formula should be included in variables_dict
+    
+    If some variable is included in variables_dict but do not appear in formula_string
+    issue a warning
+    
+    >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2, 'GDP_IP': 3}, 1)
+    WARNING: Variable 'GDP_IP' included in variables_dict but not present in formula
+    '=B2+A3*100'
+
+    '''
+    # Strip whitespace
+    formula_as_string = re.sub(r'\s+', '', formula_as_string)
+
+    # Extract a dictionary containing the pairs variable, period from
+    # formula_as_string
+    # variables_period = {'GDP' : 't-1', GDP_IP: 't'}
+    variables_periods = extract_variables_periods(formula_as_string)
+    
+    # For each variable, substitute each VAR_NAME[PERIOD] with the 
+    # corresponding excel cell name
+    
+    vars = set(variables_dict.keys()) # Check if all variables are consumed
+    for var, period in variables_periods.items():
+        # Calculate row, column of excel cell
+        try:
+            var_offset = variables_dict[var] # Variable offset in file
+        except KeyError:
+            raise ValueError('Variable %s included in formula should be included in variables_dict' % repr(var))
+        
+        period_normalize = re.sub('[' + ''.join(TIME_INDEX_VARIABLES) + ']', 't', period)
+        t = time_period                            # Offset for reference period
+        try:
+            # We transfrom TIME_INDEX_VARIABLES to t for proper evaluation
+            period_offset = eval(period_normalize)     # evaluate time expression t-1
+        except:
+            raise ValueError('Time expression %s[%s] invalid' % (var, period))
+        
+        # Get excel cell as string
+        cell_string = get_excel_ref((var_offset, period_offset))
+        
+        # Build regular expression that will match VAR_NAME[PERIOD]
+        regex = make_regex(var, period)
+        # Perform actual substutution with cell string
+        formula_as_string = regex.sub(cell_string, formula_as_string)
+        vars.remove(var)
+    
+    if len(vars) != 0:
+        for var in vars:
+            if var != '':
+                print('WARNING: Variable %s included in variables_dict but not present in formula' % repr(var))
+    
+    return '=' + formula_as_string
+
+def get_excel_ref_for_var_period(variable, period, var_offset, time_offset):
+    t = time_offset
+    return get_excel_ref((var_offset, eval(period)))
+
+
+def make_regex(var_name, period):
+    '''Make regex to match var_name and period
+    >>> make_regex('GDP', 't')
+    re.compile('GDP\\\\[t\\\\]')
+    '''
+    return re.compile(r'%s\[%s\]' % (var_name, period))
+
+
+def extract_variables_periods(formula_as_string):
+    '''Extract variables from formula with their respective periods
+    
+    >>> extract_variables_periods('GDP[t-1]+GDP_IQ[t]') == {'GDP_IQ': 't', 'GDP': 't-1'}
+    True
+    '''
+    # Extract the variable expressions  in a list ['GDP[t-1]', 'GDP_IQ[t]']
+    variable_time_dep = re.findall(r'\w+\[[' + ''.join(TIME_INDEX_VARIABLES) + '+\-\d]+\]', formula_as_string)
+    
+    # Extract groups [(GDP, t-1), (GDP_IQ, t)]
+    variable_time_dep_grouped = [re.match(r'(\w+)\[(.+)\]', v).groups() 
+                                              for v in variable_time_dep]
+    return dict(variable_time_dep_grouped)
 
 def check_parse_equation_as_formula():
     return (internal_parse_equation_as_formula() == 
             parse_equation_to_xl_formula('GDP[t-1] + GDP_IQ[t]/10 + 1 ',
                                          variables_dict={'GDP': 2, 'GDP_IQ': 3},
                                          time_period=1))
-                                        
+
+
 def internal_parse_equation_as_formula():
     return 'D3 + E4/10 + 1'
 
+def check_parse_equation_as_formula():
+    """
+    >>> check_parse_equation_as_formula()
+    '=C2*D4/100*D3/100'
+    
+    """
+    formula_as_string = 'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
+    variables_dict = {'': 0, 'GDP_IQ': 2, 'GDP': 1, 'GDP_IP': 3}
+    time_period = 3
+    return parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
+
+
 if __name__ == '__main__':
-    print(check_parse_equation_as_formula())
+    import doctest
+    doctest.testmod()
