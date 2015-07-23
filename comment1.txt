@@ -1,30 +1,27 @@
-
 """
 TO BE CORRECTED:
-- no variable names written to file
-- no running of all doctest tests  
+- eats cyrulic in NAMES
 
 LIMITATIONS (by design):
-- value precisions in output xls file not corrected (can be 0 and 2)
-- one sheet ber file
+- annual only
+- byRow only 
+- no var descriptions in file (pivot column needed) - NAMES
+- decimal precisions in output xls file not corrected (can be 0 and 2)
+- one model sheet per file
+- one occurrence of variable in reulting sheet (variable appearing only once)
 - decorations of dt_before_equations are hard-coded
-- eats cyrulic in NAMES
-"""
+- no formatting in Excel file
 
-#----------------------------------------------------------------------------
-#
-#     if no user specification - write all controls in orginal order,
-#                              - followed by data without controls in orginal order
-#                              - year depth as in historic data
-#
+SCENARIOS
 
-#
-# 2015-07-20 10:46 AM
-#
-# Outline:
+     if no user specification - write all controls in orginal order,
+                              - followed by data without controls in orginal order
+                              - year depth as in historic data
+
+FLOW
 # - write to xls
 # - one input xls file
 # - larger xls file (flatten folder)
 # - experiment with actual data - full cycle (flatten folder)
 # - (source + markup) vs flattened db vs db dump
-#
+
