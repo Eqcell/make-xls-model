@@ -5,10 +5,14 @@ TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
 
 """EP:
 
+Done:
+   I moved splitting of text string to equations_preparser.py
+
 Scope of work:
 a) in this file -  obtain a text string representing *formula_as_string* based on cell locations defined by *variables_dict* 
    and *time_period*
    'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100' ->  '=D2*E3/100*E4/100'
+   
 b) todos in https://github.com/epogrebnyak/make-xls-model/blob/master/equations_preparser.py (used in xl.fill 
    when splitting formulas)
 
@@ -16,6 +20,9 @@ c) proper eqcell_core.get_xl_col_litteral(zero_based_col_number):
    see eg  http://stackoverflow.com/questions/19415937/python-xlwt-convert-column-integer-into-excel-cell-references-eg-3-6-to-c6
    I think xlrd.colname() is safest, as xlrd appears a part of Anaconda installation.
 
+d) eqcell_core.py - cosmetic change (will be depreciated)
+
+e) placing TIME_INDEX_VARIABLES somewhere to avoid corss-reference between the files. Maybe even a new config.py
 
 Expected benefit:
    formula parser not dependent on sympy package
