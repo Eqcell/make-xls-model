@@ -14,7 +14,7 @@ def read_df(filename_, sheet_):
     return read_sheet(filename_, sheet_, 0)
     
 def read_col(filename_, sheet_):    
-    return read_sheet(file, sheet_, None).values.tolist()[0]  
+    return read_sheet(filename_, sheet_, None).values.tolist()[0]  
     
 def get_spec_as_dict(file):
     return   { 'data': read_df(file, 'data')    
@@ -41,18 +41,18 @@ def write_array_to_xl_using_xlwings(ar, file, sheet):
 ###########################################################################
 ## Main entry
 ###########################################################################
-    
-def make_xl_model(abs_filepath, sheet): 
-    # data_df, controls_df, equations_list, var_label_list = get_spec_as_tuple(abs_filepath)
-    ar = make_wb_array2(*get_spec_as_tuple(abs_filepath))
-    write_array_to_xl_using_xlwings(ar, file, sheet)  
+
+def make_xl_model(abs_filepath, model_sheet): 
+   # data_df, controls_df, equations_list, var_label_list = get_spec_as_tuple(abs_filepath)
+   ar = make_wb_array2(*get_spec_as_tuple(abs_filepath))
+   write_array_to_xl_using_xlwings(ar, abs_filepath, model_sheet)  
 
 ###########################################################################
 ## Sample call
 ###########################################################################
     
 if __name__ == '__main__':
-    # file = 'D:/make-xls-model-master/spec.xls'
-    file = 'D:/git/make-xls-model/spec.xls'
+    import os
+    file1 = os.path.abspath('spec.xls')
     sheet = 'model'
-    make_xl_model(file, sheet)
+    make_xl_model(file1, sheet)
