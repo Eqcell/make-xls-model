@@ -1,7 +1,6 @@
 # coding: utf-8
 """
 Data sources for the model and output.
-
 Current entry point: 
     model_spec, view_spec = get_specification()
     model_spec, view_spec = get_mock_specification(user_input)
@@ -17,7 +16,7 @@ import numpy as np
 ###########################################################################
 
     
-##### Pair for testing
+
 # label, year, value
 DATA_PROXY = [ ("GDP", 2013, 66190.11992)
         , ("GDP",    2014, 71406.3992)
@@ -90,6 +89,7 @@ def get_proxy_specification_dict():
              'equations': EQ_SAMPLE,
                 'format': ROW_LABELS_IN_OUTPUT }
 
+# WARNING: to de dereciated in favor of  get_proxy_specification_dict()
 def get_mock_specification():
     model_spec = [
     ("Historic data as df",       convert_tuple_to_df(DATA_PROXY)      ),
@@ -106,9 +106,7 @@ def get_mock_specification():
     
     return model_spec, view_spec
 
-def get_specification(user_input):
-    pass
-      
+     
 def print_specification(specification):             
    for spec in specification:
        print("\n------ {}:".format(spec[0]))
@@ -138,87 +136,12 @@ def check_get_historic_data_as_dataframe():
     """
     df1 = convert_tuple_to_df(DATA_PROXY)
     df2 = DATA_PROXY_AS_DF  
-    # print("Own:")
-    # print(df1)
-    # print("Reference:")    
-    # print(df2) 
     return df1.equals(df2)
-    
-def get_historic_data_as_dataframe():
-    pass
-
-    
-###########################################################################
-## Names 
-###########################################################################
-
-# def get_sample_names_as_dict():       
-    # return {x[1]:x[0] for x in NAMES_CSV_PROXY}
-
-def get_names_as_dict():
-    """Make name parameter dictionary callable by names_dict[label][param].
-    """
-    pass
-
-###########################################################################
-## Equations 
-###########################################################################
-
-def get_equations():
-    pass
-  
-###########################################################################
-## Control parameters 
-###########################################################################
-
-# def get_sample_controls_as_dataframe():
-    # return convert_tuple_to_df(CONTROLS_PROXY)
-    
-def get_controls_as_dataframe():
-    pass
-    
-###########################################################################
-## Years?
-###########################################################################
-
-# WARNING: usage unclear
-def get_years_as_list():
-    return [y for y in range(get_start_year(),get_max_control_year() + 1)]
-
-# WARNING: usage unclear
-def get_max_control_year():
-    return max([y[1] for y in controls_proxy])
-
-###########################################################################
-## Output parameters - requires workaround
-###########################################################################
-
-# LIMITATION: One sheet per output Excel file
-# def get_sheet_format():
-    # return { 'filename':'macro.xls' 
-        # , 'sheet': 'gdp_forecast'
-        # , 'start_year': 2013
-        # , 'rows': ["GDP", "GDP_IP", "GDP_IQ"]
-        # }
-        
-# def get_xl_filename():
-    # return get_sheet_format()['filename']
-      
-# def get_sheet_name():
-    # return get_sheet_format()['sheet']
-        
-# def get_start_year():        
-    # return get_sheet_format()['start_year']
-        
-# def get_row_labels():        
-    # return get_sheet_format()['rows']  
 
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
     
-    #print ("************* Sample (mock) specification, callable by get_mock_specification()")
-    #m, v = get_mock_specification()
-    #print_specification(m)                 
-    #print_specification(v)                 
-    #print ("\n************* End mock specification")
+    # m, v = get_mock_specification()
+    # print_specification(m)                 
+    # print_specification(v)                 
