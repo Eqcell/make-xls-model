@@ -104,7 +104,7 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
     # For each variable, substitute each VAR_NAME[PERIOD] with the 
     # corresponding excel cell name
     
-    vars = set(variables_dict.keys()) # Check if all variables are consumed
+    all_vars = set(variables_dict.keys()) # Check if all variables are consumed
     for var, period in variables_periods.items():
         # Calculate row, column of excel cell
         try:
@@ -127,10 +127,10 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
         regex = make_regex(var, period)
         # Perform actual substutution with cell string
         formula_as_string = regex.sub(cell_string, formula_as_string)
-        vars.remove(var)
+        all_vars.remove(var)
     
-    if len(vars) != 0:
-        for var in vars:
+    if len(all_vars) != 0:
+        for var in all_vars:
             if var != '':
                 print('WARNING: Variable %s included in variables_dict but not present in formula' % repr(var))
     
