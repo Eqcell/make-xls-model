@@ -66,8 +66,20 @@ Additional behaviour:
 
 """
 
+def strip_all_whitespace(string):
+    return re.sub(r'\s+', '', string)
+    
+
 def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period):
     '''Equivalent method of eqcell_core, but with text-based parser
+    
+    >>> parse_equation_to_xl_formula('GDP[t] * 0.5 + GDP[t-1] * 0.5',
+    ...                              {'GDP': 99}, 1)
+    '=B100*0.5+A100*0.5'
+    
+    >>> parse_equation_to_xl_formula('GDP * 0.5 + GDP[t-1] * 0.5',
+    ...                              {'GDP': 99}, 1)
+    '=B100*0.5+A100*0.5'
     
     >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100',
     ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
@@ -94,7 +106,10 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
 
     '''
     # Strip whitespace
-    formula_as_string = re.sub(r'\s+', '', formula_as_string)
+    formula_as_string = strip_all_whitespace(formula_as_string)
+    
+    # Expands shorthand
+    # formula_as_string = expand_shorthand(formula_as_string, variables_dict.keys())
 
     # Extract a dictionary containing the pairs variable, period from
     # formula_as_string
@@ -131,8 +146,8 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
     
     if len(all_vars) != 0:
         for var in all_vars:
-            if var != '':
-                print('WARNING: Variable %s included in variables_dict but not present in formula' % repr(var))
+            if var != '':              
+               print('WARNING: Variable %s included in variables_dict but not present in formula' % repr(var))
     
     return '=' + formula_as_string
 
@@ -151,17 +166,22 @@ def get_excel_ref_for_var_period(variable, period, var_offset, time_offset):
     return get_excel_ref((var_offset, eval(period)))
 
 
-def expand_shortand(formula_as_string, variables):
-    '''
-    >>> expand_shortand('GDP_IQ+GDP_IP[t]+GDP_IQ[t-1]', {'GDP_IP': 1, 'GDP_IQ': 1})
+def expand_shorthand(formula_as_string, variables):
+    """
+    >>> expand_shorthand('GDP_IQ+GDP_IP+GDP_IQ[t-1]', {'GDP_IP': 1, 'GDP_IQ': 2})
     'GDP_IQ[t]+GDP_IP[t]+GDP_IQ[t-1]'
-    '''
+    
+    >>> expand_shorthand('GDP * 0 + GDP [t-1] * GDP_IQ / 100 * GDP_IP[t] / 100', {'GDP_IP': 1, 'GDP_IQ': 2, 'GDP':3})
+    'GDP[t] * 0 + GDP [t-1] * GDP_IQ[t] / 100 * GDP_IP[t] / 100'
+    """
     for var in variables:
-        formula_as_string = re.sub(var + r'(?!\[)', var + '[t]', formula_as_string) 
+    
+        formula_as_string = re.sub(var + r'(?!\s*[\dA-Za-z_^\[])',
+                                   var + '[t]', formula_as_string) 
     return formula_as_string
 
 def make_regex(var_name, period):
-    '''Make regex to match var_name and period
+    '''Make regex to match var_name and period    
     >>> make_regex('GDP', 't')
     re.compile('GDP\\\\[t\\\\]')
     '''
@@ -175,6 +195,7 @@ def extract_variables_periods(formula_as_string):
     True
     '''
     # Extract the variable expressions  in a list ['GDP[t-1]', 'GDP_IQ[t]']
+    # This will 
     variable_time_dep = re.findall(r'\w+\[[' + ''.join(TIME_INDEX_VARIABLES) + '+\-\d]+\]', formula_as_string)
     
     # Extract groups [(GDP, t-1), (GDP_IQ, t)]
