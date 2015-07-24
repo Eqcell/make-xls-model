@@ -120,10 +120,11 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
     # corresponding excel cell name
     for var, period in variables_periods:
         # Calculate row, column of excel cell
-        var_offset = get_cell_row(var, variables_dict)
+        cell_row = get_cell_row(var, variables_dict)
+        cell_col = period
         
         # Get excel cell as string
-        cell_string = get_excel_ref((var_offset, period))
+        cell_string = get_excel_ref((cell_row, period))
         
         # change (<varname>)\[(<int>)\] to xl A1 reference 
         formula_as_string = formula_as_string.replace('%s[%d]' % (var, period), cell_string)
@@ -138,6 +139,7 @@ def get_cell_row(var, variables_dict):
         return variables_dict[var] # Variable offset in file
     except KeyError:
         raise ValueError('Variable %s included in formula should be included in variables_dict' % repr(var))
+
 
 def get_excel_ref(cell):
     '''
