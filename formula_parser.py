@@ -5,24 +5,29 @@ from config import TIME_INDEX_VARIABLES
 
 """EP:
 
-Done:
-   I moved splitting of text string to equations_preparser.py
-
+Outstanding: 
+   a) and e)
+   
 Scope of work:
 a) in this file -  obtain a text string representing *formula_string* based on cell locations defined by *variables_dict* 
    and *time_period*
    'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100' ->  '=D2*E3/100*E4/100'
+   EP: implemented, but error in https://github.com/epogrebnyak/make-xls-model/issues/9
    
 b) todos in https://github.com/epogrebnyak/make-xls-model/blob/master/equations_preparser.py (used in xl.fill 
    when splitting formulas)
+   EP: now done.
 
 c) proper eqcell_core.get_xl_col_litteral(zero_based_col_number):
    see eg  http://stackoverflow.com/questions/19415937/python-xlwt-convert-column-integer-into-excel-cell-references-eg-3-6-to-c6
    I think xlrd.colname() is safest, as xlrd appears a part of Anaconda installation.
-
+   EP: done
+   
 d) eqcell_core.py - cosmetic change (will be depreciated)
-
+   EP: under way.    
+   
 e) placing TIME_INDEX_VARIABLES somewhere to avoid corss-reference between the files. Maybe even a new config.py
+   EP: done
 
 Expected benefit:
    formula parser not dependent on sympy package
@@ -66,7 +71,13 @@ Additional behaviour:
 
 def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     '''Equivalent method of eqcell_core, but with text-based parser
+
+    >>> parse_equation_to_xl_formula('liq_to_credit*credit', {'credit':10, 'liq_to_credit': 9}, 1)
+    '=B10*B11'
     
+    >>> parse_equation_to_xl_formula('liq_to_credit*credit', {'liq_to_credit': 9, 'credit':10}, 1)
+    '=B10*B11'
+        
     >>> parse_equation_to_xl_formula('GDP[t]', {'GDP': 99}, 1)
     '=B100'
     
@@ -176,14 +187,23 @@ def substitute_time_indices(formula_string, period):
 
 def expand_shorthand(formula_string, variables):
     """
-    >>> expand_shorthand('GDP_IQ+GDP_IP+GDP_IQ[t-1]', {'GDP_IP': 1, 'GDP_IQ': 2})
+    >>> expand_shorthand('GDP_IQ+GDP_IP+GDP_IQ[t-1]', ['GDP', 'GDP_IP', 'GDP_IQ'])
     'GDP_IQ[t]+GDP_IP[t]+GDP_IQ[t-1]'
     
-    >>> expand_shorthand('GDP * 0 + GDP [t-1] * GDP_IQ / 100 * GDP_IP[t] / 100', {'GDP_IP': 1, 'GDP_IQ': 2, 'GDP':3})
+    >>> expand_shorthand('GDP * 0 + GDP [t-1] * GDP_IQ / 100 * GDP_IP[t] / 100', 
+    ...                        ['GDP', 'GDP_IP', 'GDP_IQ'])
     'GDP[t] * 0 + GDP [t-1] * GDP_IQ[t] / 100 * GDP_IP[t] / 100'
     
-    >>> expand_shorthand('GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100', {'': 0, 'GDP_IQ': 2, 'GDP': 1, 'GDP_IP': 3})
+    >>> expand_shorthand('GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100',
+    ...                  ['GDP', 'GDP_IP', 'GDP_IQ'])
     'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
+    
+    >>> expand_shorthand('liq_to_credit*credit', ['liq_to_credit', 'credit'])
+    'liq_to_credit[t]*credit[t]'
+    
+    >>> expand_shorthand('liq_to_credit*credit', ['credit', 'liq_to_credit'])
+    'liq_to_credit[t]*credit[t]'
+    
     """
     for var in variables:
         if var != '':
