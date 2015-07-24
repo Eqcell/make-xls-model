@@ -88,6 +88,10 @@ def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     >>> parse_equation_to_xl_formula('GDP * 0.5 + GDP[t-1] * 0.5',
     ...                              {'GDP': 99}, 1)
     '=B100*0.5+A100*0.5'
+
+    >>> parse_equation_to_xl_formula('liq[t] + credit[t] * 0.5 + liq_to_credit[t] * 0.5',
+    ...                              {'credit': 2, 'liq_to_credit': 3, 'liq': 4}, 1)
+    '=B5+B3*0.5+B4*0.5'
     
     >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100',
     ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
@@ -142,7 +146,8 @@ def get_A1_reference(segment, variables_dict):
     
 def replace_segment_in_formula(formula_string, segment, variables_dict):
     A1_ref = get_A1_reference(segment, variables_dict)
-    return formula_string.replace(segment, A1_ref)
+    # Match beginning of word
+    return re.sub(r'\b' + re.escape(segment), A1_ref, formula_string)
     
 def get_cell_row(var, variables_dict):
     try:
