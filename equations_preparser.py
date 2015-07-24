@@ -19,7 +19,7 @@ def strip_timeindex(str_, time_litterals = TIME_INDEX_VARIABLES):
    
     Passed test:
     >>> strip_timeindex("GDP(t)")
-    'GDP'   
+    'GDP'
         
     Failing tests (4 tests):    
     >>> strip_timeindex("GDP[t]")
@@ -32,17 +32,13 @@ def strip_timeindex(str_, time_litterals = TIME_INDEX_VARIABLES):
     'GDP'
      
     >>> strip_timeindex(' GDP   ( t) ')
-    'GDP'       
+    'GDP'
     """
     all_indices = "".join(time_litterals)
-    pattern = r"(\S*)[\[(][" + all_indices + "][)\]]"
-    
-    m = re.search(pattern, str_)
-    if m:
-        return m.groups()[0]
-    else:
-    # TODO: if function cannot strip time index return None
-        return None
+    # Remove all whitespace
+    str_ = re.sub(r'\s', '', str_)
+    # Remove everything between brackets
+    return re.sub(r'[\[(].*[\])]', '', str_)
         
 def test_parse_to_formula_dict():    
     """
@@ -78,7 +74,7 @@ def get_formula(var_name, eq_dict):
     """Returns a formula for *var_name* based on contents of *eq_dict*.
     
     Test:
-    >>> get_equation('x', {'x':[None, 'x+1']})
+    >>> get_formula('x', {'x':[None, 'x+1']})
     'x+1'
     """
     return eq_dict[var_name][1]
