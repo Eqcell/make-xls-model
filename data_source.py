@@ -70,7 +70,7 @@ def _sample_for_xfill_dataframe_before_equations():
 
 def _sample_for_xfill_array_after_equations():
     return np.array(   
-    [['', 2013, 2014, 2015, 2016]
+    [['', '2013', '2014', '2015', '2016']
     ,['GDP', 66190.11992, 71406.3992, '=C2*D3*D4/10000', '=D2*E3*E4/10000']
     ,['GDP_IQ', 101.3407976, 100.6404858, 95.0, 102.5]
     ,['GDP_IP', 105.0467483, 107.1941886, 115.0, 113.0]
