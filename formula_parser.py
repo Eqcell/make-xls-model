@@ -71,6 +71,9 @@ def strip_all_whitespace(string):
 def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     '''Equivalent method of eqcell_core, but with text-based parser
     
+    >>> parse_equation_to_xl_formula('GDP[t]', {'GDP': 99}, 1)
+    '=B100'
+    
     >>> parse_equation_to_xl_formula('GDP[t] * 0.5 + GDP[t-1] * 0.5',
     ...                              {'GDP': 99}, 1)
     '=B100*0.5+A100*0.5'
@@ -124,6 +127,72 @@ def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     if '[' in formula_string or ']' in formula_string:
         raise ValueError('Formula parsing not complete: ' + formula_string)
 
+    return '=' + formula_string
+    
+    
+def parse_equation_to_xl_formula2(formula_string, variables_dict, time_period):
+    '''Equivalent method of eqcell_core, but with text-based parser
+    
+    >>> parse_equation_to_xl_formula2('GDP[t]', {'GDP': 99}, 1)
+    '=B100'
+    
+    >>> parse_equation_to_xl_formula2('GDP[t] * 0.5 + GDP[t-1] * 0.5',
+    ...                              {'GDP': 99}, 1)
+    '=B100*0.5+A100*0.5'
+    
+    >>> parse_equation_to_xl_formula2('GDP * 0.5 + GDP[t-1] * 0.5',
+    ...                              {'GDP': 99}, 1)
+    '=B100*0.5+A100*0.5'
+    
+    >>> parse_equation_to_xl_formula2('GDP[t] + GDP_IQ[t-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
+    '=B2+A3*100'
+    
+    >>> parse_equation_to_xl_formula2('GDP[n] + GDP_IQ[n-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
+    '=B2+A3*100'
+    
+    If some variable is missing from 'variable_dict' raise an exception:
+    
+    >>> parse_equation_to_xl_formula2('GDP[t] + GDP_IQ[t-1] * 100', # doctest: +IGNORE_EXCEPTION_DETAIL 
+    ...                              {'GDP': 1}, 1)
+    Traceback (most recent call last):  
+    KeyError: Cannot parse formula, formula contains unknown variable: GDP_IQ
+    
+    If some variable is included in variables_dict but do not appear in formula_string
+    do nothing.
+    
+    >>> parse_equation_to_xl_formula2('GDP[t] + GDP_IQ[t-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2, 'GDP_IP': 3}, 1)
+    '=B2+A3*100'
+
+    '''
+    # Strip whitespace
+    formula_string = strip_all_whitespace(formula_string)
+    
+    # Expands shorthand
+    formula_string = expand_shorthand(formula_string, variables_dict.keys())
+    
+    # parse and substitute time indices, eg. GDP[t-1] -> GDP[3] if t = 4
+    formula_string = substitute_time_indices(formula_string, time_period)
+    
+    def get_A1_reference(segment, variables_dict):
+        var, period = extract_var_time(segment)
+        if var in variables_dict.keys():
+            cell_row = get_cell_row(var, variables_dict)
+            cell_col = period  
+            return get_excel_ref((cell_row, period)) 
+        else:
+            raise KeyError("Cannot parse formula, formula contains unknown variable: " + var)        
+    
+    def replace_segment_in_formula(formula_string, segment, variables_dict):
+        A1_ref = get_A1_reference(segment, variables_dict)
+        return formula_string.replace(segment, A1_ref)
+    
+    var_time_segments = re.findall(r'(\w+\[\d+\])', formula_string)
+    for segment in var_time_segments: 
+        formula_string = replace_segment_in_formula(formula_string, segment, variables_dict)
+        
     return '=' + formula_string
 
 def replace_variable_in_formula(formula_string, var, period, variables_dict):
@@ -204,6 +273,16 @@ def make_regex(var_name, period):
     '''
     return re.compile(r'%s\[%s\]' % (var_name, period))
 
+def extract_var_time(formula_string):
+    '''Extract variable and time period from formula segment
+    
+    >>> extract_var_time('GDP[1]')
+    ('GDP', 1)
+    '''
+    # Extract group (GDP, 0)
+    a, b = re.search(r'(\w+)\[(\d+)\]', formula_string).groups()
+    return a, int(b)
+    
 
 def extract_variables_periods(formula_string):
     '''Extract variables from formula with their respective periods
@@ -229,4 +308,5 @@ def check_parse_equation_as_formula():
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+    pass
     
