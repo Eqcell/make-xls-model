@@ -1,6 +1,7 @@
 # ***************** new code *****************
 from sympy import var
-TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
+from config import TIME_INDEX_VARIABLES
+
 
 def get_excel_ref(cell):  
     """
