@@ -1,6 +1,7 @@
 '''Module to parse formulas to their respective excel representations'''
 import re
-from eqcell_core import get_excel_ref
+import xlrd
+
 #duplicate
 TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
 
@@ -135,10 +136,29 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
     
     return '=' + formula_as_string
 
+def get_excel_ref(cell):
+    '''
+    >>> get_excel_ref((0, 0))
+    'A1'
+    >>> get_excel_ref((3, 2))
+    'C4'
+    '''
+    row, col = cell
+    return xlrd.colname(col) + str(row + 1)
+
 def get_excel_ref_for_var_period(variable, period, var_offset, time_offset):
     t = time_offset
     return get_excel_ref((var_offset, eval(period)))
 
+
+def expand_shortand(formula_as_string, variables):
+    '''
+    >>> expand_shortand('GDP_IQ+GDP_IP[t]+GDP_IQ[t-1]', {'GDP_IP': 1, 'GDP_IQ': 1})
+    'GDP_IQ[t]+GDP_IP[t]+GDP_IQ[t-1]'
+    '''
+    for var in variables:
+        formula_as_string = re.sub(var + r'(?!\[)', var + '[t]', formula_as_string) 
+    return formula_as_string
 
 def make_regex(var_name, period):
     '''Make regex to match var_name and period
@@ -163,16 +183,6 @@ def extract_variables_periods(formula_as_string):
     return dict(variable_time_dep_grouped)
 
 def check_parse_equation_as_formula():
-    return (internal_parse_equation_as_formula() == 
-            parse_equation_to_xl_formula('GDP[t-1] + GDP_IQ[t]/10 + 1 ',
-                                         variables_dict={'GDP': 2, 'GDP_IQ': 3},
-                                         time_period=1))
-
-
-def internal_parse_equation_as_formula():
-    return 'D3 + E4/10 + 1'
-
-def check_parse_equation_as_formula():
     """
     >>> check_parse_equation_as_formula()
     '=C2*D4/100*D3/100'
@@ -182,7 +192,6 @@ def check_parse_equation_as_formula():
     variables_dict = {'': 0, 'GDP_IQ': 2, 'GDP': 1, 'GDP_IP': 3}
     time_period = 3
     return parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
-
 
 if __name__ == '__main__':
     import doctest
