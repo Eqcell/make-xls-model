@@ -43,16 +43,47 @@ def write_array_to_xl_using_xlwings(ar, file, sheet):
 ###########################################################################
 
 def make_xl_model(abs_filepath, model_sheet): 
-   # data_df, controls_df, equations_list, var_label_list = get_spec_as_tuple(abs_filepath)
-   ar = make_wb_array2(*get_spec_as_tuple(abs_filepath))
+   print("Done importing libraries")
+   
+   data_df, controls_df, equations_list, var_list = get_spec_as_tuple(abs_filepath)
+   print("Done reading specification from file")  
+   for spec_element in get_spec_as_tuple(abs_filepath):
+      pprint(spec_element)
+   
+   ar = make_wb_array2(data_df, controls_df, equations_list, var_list)
+   # shorter notation for the above
+   # ar = make_wb_array2(*get_spec_as_tuple(abs_filepath))
+   print("Done creating 'wb_array'")   
+   pprint(ar)
+   
    write_array_to_xl_using_xlwings(ar, abs_filepath, model_sheet)  
+   print("Finished writing to file: " + abs_filepath)
 
+# def get_df_before_equations(data_df, controls_df, var_list):
+    # df = pd.concat([data_df, controls_df])    
+    # try:
+        # return df[var_list]
+    # except KeyError:
+        # var_list_not_in_df = [x for x in var_list if x not in df.columns.values]
+        # pprint (var_list_not_in_df)
+        # raise KeyError("'var_list contains variables outside union of 'data_df' and 'contol_df' variables. \nCannot perform df[var_list]")    
+
+# def make_wb_array(data_df, controls_df, equations_list, var_list):
+    # df = get_df_before_equations(data_df, controls_df, var_list)
+    # from xl_fill import 
+   
 ###########################################################################
 ## Sample call
 ###########################################################################
     
 if __name__ == '__main__':
     import os
-    file1 = os.path.abspath('spec.xls')
+    abs_filepath = os.path.abspath('spec2.xls')
     sheet = 'model'
-    make_xl_model(file1, sheet)
+    data_df, controls_df, equations_list, var_list = get_spec_as_tuple(abs_filepath)
+    from xl_fill import get_dataframe_before_equations
+    df = get_dataframe_before_equations(data_df, controls_df, var_list)
+    pprint(df)
+    
+    #make_xl_model(abs_filepath, sheet)    
+    

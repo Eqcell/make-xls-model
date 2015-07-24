@@ -3,9 +3,8 @@
 """
 
 import re
-from config import TIME_INDEX_VARIABLES
     
-def strip_timeindex(str_, time_litterals = TIME_INDEX_VARIABLES):
+def strip_timeindex(str_):
     """Returns variable name without time index.
     
        Accepted *str_*: 'GDP', 'GDP[t]', 'GDP(t)', '    GDP [ t ]', ' GDP   ( t) '       
@@ -32,15 +31,22 @@ def strip_timeindex(str_, time_litterals = TIME_INDEX_VARIABLES):
     >>> strip_timeindex(' GDP   ( t) ')
     'GDP'
     """
-    all_indices = "".join(time_litterals)
-    # Remove all whitespace
-    str_ = re.sub(r'\s', '', str_)
-    # Remove everything between brackets
-    return re.sub(r'[\[(].*[\])]', '', str_)
-        
+    if "[" in str_ or "(" in str_:
+        pattern = r"\s*(\S*)\s*[(\[].*[)\]]"
+        m = re.search(pattern, str_)
+        if m:
+            return m.groups()[0]
+        else:
+            raise ValueError('Error extracting variable names from: ' + str_)
+    else:
+        return str_.strip()
+             
+
+    
 def test_parse_to_formula_dict():    
     """
     >>> test_parse_to_formula_dict()
+    True
     True
     True
     True
@@ -49,11 +55,13 @@ def test_parse_to_formula_dict():
       ['GDP(t) = GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100']
     , ['x(t) = x(t-1) + 1']
     , ['x(t) = x(t-1) + 1', 'y(t) = x(t)']
+    , ['credit = credit[t-1] * credit_rog'] 
     ]    
     expected_outputs = [
       {'GDP': ['GDP(t)', 'GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100']}   
-    , {'x':   ['x(t)', 'x(t-1) + 1']}
-    , {'x':   ['x(t)', 'x(t-1) + 1'], 'y': ['y(t)', 'x(t)']}
+    , {'x':   ['x(t)', 'x(t-1) + 1']                                    }
+    , {'x':   ['x(t)', 'x(t-1) + 1'], 'y': ['y(t)', 'x(t)']             }
+    , {'credit' : ['credit', 'credit[t-1] * credit_rog']                } 
     ]
     for input_eq, expected_output in zip(inputs,expected_outputs):
        print(expected_output == parse_to_formula_dict(input_eq))
