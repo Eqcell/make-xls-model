@@ -64,10 +64,6 @@ Additional behaviour:
 
 """
 
-def strip_all_whitespace(string):
-    return re.sub(r'\s+', '', string)
-    
-
 def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     '''Equivalent method of eqcell_core, but with text-based parser
     
@@ -114,39 +110,42 @@ def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     # parse and substitute time indices, eg. GDP[t-1] -> GDP[3] if t = 4
     formula_string = substitute_time_indices(formula_string, time_period)
     
-    def get_A1_reference(segment, variables_dict):
-        var, period = extract_var_time(segment)
-        if var in variables_dict.keys():
-            cell_row = get_cell_row(var, variables_dict)
-            cell_col = period  
-            return get_excel_ref((cell_row, period)) 
-        else:
-            raise KeyError("Cannot parse formula, formula contains unknown variable: " + var)        
-    
-    def replace_segment_in_formula(formula_string, segment, variables_dict):
-        A1_ref = get_A1_reference(segment, variables_dict)
-        return formula_string.replace(segment, A1_ref)
-    
+    # each setment in var_time_segments  is like 'GDP[0]', 'GDP_IQ[10]', etc
     var_time_segments = re.findall(r'(\w+\[\d+\])', formula_string)
     for segment in var_time_segments: 
         formula_string = replace_segment_in_formula(formula_string, segment, variables_dict)
         
     return '=' + formula_string
 
+def strip_all_whitespace(string):
+    return re.sub(r'\s+', '', string)
+    
+def get_A1_reference(segment, variables_dict):
+    var, period = extract_var_time(segment)
+    if var in variables_dict.keys():
+        cell_row = get_cell_row(var, variables_dict)
+        cell_col = period  
+        return get_excel_ref(cell_row, period) 
+    else:
+        raise KeyError("Cannot parse formula, formula contains unknown variable: " + var)        
+    
+def replace_segment_in_formula(formula_string, segment, variables_dict):
+    A1_ref = get_A1_reference(segment, variables_dict)
+    return formula_string.replace(segment, A1_ref)
+    
 def get_cell_row(var, variables_dict):
     try:
         return variables_dict[var] # Variable offset in file
     except KeyError:
         raise ValueError('Variable %s is in formula, but not found in variables_dict' % repr(var))
 
-def get_excel_ref(cell):
+def get_excel_ref(row, col):
     '''
-    >>> get_excel_ref((0, 0))
+    >>> get_excel_ref(0, 0)
     'A1'
-    >>> get_excel_ref((3, 2))
+    >>> get_excel_ref(3, 2)
     'C4'
     '''
-    row, col = cell
     return xlrd.colname(col) + str(row + 1)
 
 def substitute_time_indices(formula_string, period):
@@ -159,6 +158,7 @@ def substitute_time_indices(formula_string, period):
     
     # time index in square brackets [], [<ws><litteral in TIME_INDEX_VARIABLES><ws >+-<ws><integer><ws>]
     TI = ''.join(TIME_INDEX_VARIABLES)
+    # note here [] are part of regex notation 
     TI_REGEX = r'[' + TI + r'+\-\d]'
     
     for time_index in re.findall(r'\[(' + TI_REGEX + '+)\]', formula_string):
