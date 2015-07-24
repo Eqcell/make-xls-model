@@ -9,7 +9,7 @@ Done:
    I moved splitting of text string to equations_preparser.py
 
 Scope of work:
-a) in this file -  obtain a text string representing *formula_as_string* based on cell locations defined by *variables_dict* 
+a) in this file -  obtain a text string representing *formula_string* based on cell locations defined by *variables_dict* 
    and *time_period*
    'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100' ->  '=D2*E3/100*E4/100'
    
@@ -34,7 +34,7 @@ Assumptions:
   - variable is detected as participating in variables_dict.keys()
 
 Suggested implementation:
-  - strip all whitespace from inside of formula_as_string (it would simplyfy the rest of parsing and spaces 
+  - strip all whitespace from inside of formula_string (it would simplyfy the rest of parsing and spaces 
     get eaten up in Excel anyways)
   - parse and substitute  time indices, egg. GDP[t-1] -> GDP[3] if t = 4
   - for each in variables_dict.keys() change (<varname>)\[(<int>)\] to xl A1 reference 
@@ -68,7 +68,7 @@ def strip_all_whitespace(string):
     return re.sub(r'\s+', '', string)
     
 
-def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period):
+def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     '''Equivalent method of eqcell_core, but with text-based parser
     
     >>> parse_equation_to_xl_formula('GDP[t] * 0.5 + GDP[t-1] * 0.5',
@@ -103,43 +103,43 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
 
     '''
     # Strip whitespace
-    formula_as_string = strip_all_whitespace(formula_as_string)
+    formula_string = strip_all_whitespace(formula_string)
     
     # Expands shorthand
-    formula_as_string = expand_shorthand(formula_as_string, variables_dict.keys())
+    formula_string = expand_shorthand(formula_string, variables_dict.keys())
     
-    # parse and substitute  time indices, egg. GDP[t-1] -> GDP[3] if t = 4
-    formula_as_string = substitute_time_indices(formula_as_string, time_period)
+    # parse and substitute time indices, eg. GDP[t-1] -> GDP[3] if t = 4
+    formula_string = substitute_time_indices(formula_string, time_period)
     
-    # Extract a list containing the pairs variable, period from
-    # formula_as_string
+    # Extract a list containing (variable, period) tuples from formula_string
     # variables_period = [('GDP', 0), (GDP_IP, 1)]
-    variables_periods = extract_variables_periods(formula_as_string)
+    variables_periods = extract_variables_periods(formula_string)
     
     # For each variable, substitute each VAR_NAME[PERIOD] with the 
-    # corresponding excel cell name
+    # corresponding excel cell name in formula_string 
     for var, period in variables_periods:
-        # Calculate row, column of excel cell
-        cell_row = get_cell_row(var, variables_dict)
-        cell_col = period
+        formula_string = replace_variable_in_formula(formula_string, var, period, variables_dict)
         
-        # Get excel cell as string
-        cell_string = get_excel_ref((cell_row, period))
-        
-        # change (<varname>)\[(<int>)\] to xl A1 reference 
-        formula_as_string = formula_as_string.replace('%s[%d]' % (var, period), cell_string)
+    # extra result validation, at this point there should not be any 
+    if '[' in formula_string or ']' in formula_string:
+        raise ValueError('Formula parsing not complete: ' + formula_string)
+
+    return '=' + formula_string
+
+def replace_variable_in_formula(formula_string, var, period, variables_dict):
+    # Calculate row, column of excel cell
+    cell_row = get_cell_row(var, variables_dict)
+    cell_col = period        
+    # Get excel cell as string
+    A1_ref = get_excel_ref((cell_row, period))        
+    # change (<varname>)\[(<int>)\] to xl A1 reference 
+    return formula_string.replace('%s[%d]' % (var, period), A1_ref)  
     
-    if '[' in formula_as_string or ']' in formula_as_string:
-        raise ValueError('Formula contains variables not in %s' % variables_dict.keys())
-
-    return '=' + formula_as_string
-
 def get_cell_row(var, variables_dict):
     try:
         return variables_dict[var] # Variable offset in file
     except KeyError:
-        raise ValueError('Variable %s included in formula should be included in variables_dict' % repr(var))
-
+        raise ValueError('Variable %s is in formula, but not found in variables_dict' % repr(var))
 
 def get_excel_ref(cell):
     '''
@@ -151,11 +151,11 @@ def get_excel_ref(cell):
     row, col = cell
     return xlrd.colname(col) + str(row + 1)
 
-def get_excel_ref_for_var_period(variable, period, var_offset, time_offset):
-    t = time_offset
-    return get_excel_ref((var_offset, eval(period)))
+# def get_excel_ref_for_var_period(variable, period, var_offset, time_offset):
+    # t = time_offset
+    # return get_excel_ref((var_offset, eval(period)))
 
-def substitute_time_indices(formula_as_string, period):
+def substitute_time_indices(formula_string, period):
     '''
     >>> substitute_time_indices('GDP[t]+GDP[t-1]+0.5*GDP_IP[t]', 1)
     'GDP[1]+GDP[0]+0.5*GDP_IP[1]'
@@ -167,7 +167,7 @@ def substitute_time_indices(formula_as_string, period):
     TI = ''.join(TIME_INDEX_VARIABLES)
     TI_REGEX = r'[' + TI + r'+\-\d]'
     
-    for time_index in re.findall(r'\[(' + TI_REGEX + '+)\]', formula_as_string):
+    for time_index in re.findall(r'\[(' + TI_REGEX + '+)\]', formula_string):
         # We transfrom TIME_INDEX_VARIABLES to t for proper evaluation
         period_normalize = re.sub('[' + TI + ']', 't', time_index)
         try:
@@ -176,11 +176,11 @@ def substitute_time_indices(formula_as_string, period):
         except:
             raise ValueError('Time expression %s[%s] invalid' % (var, period))
         
-        formula_as_string = formula_as_string.replace('[' + time_index + ']', 
+        formula_string = formula_string.replace('[' + time_index + ']', 
                                                       '[' + str(period_offset) + ']')
-    return formula_as_string
+    return formula_string
 
-def expand_shorthand(formula_as_string, variables):
+def expand_shorthand(formula_string, variables):
     """
     >>> expand_shorthand('GDP_IQ+GDP_IP+GDP_IQ[t-1]', {'GDP_IP': 1, 'GDP_IQ': 2})
     'GDP_IQ[t]+GDP_IP[t]+GDP_IQ[t-1]'
@@ -193,9 +193,9 @@ def expand_shorthand(formula_as_string, variables):
     """
     for var in variables:
         if var != '':
-            formula_as_string = re.sub(var + r'(?!\s*[\dA-Za-z_^\[])',
-                                       var + '[t]', formula_as_string) 
-    return formula_as_string
+            formula_string = re.sub(var + r'(?!\s*[\dA-Za-z_^\[])',
+                                       var + '[t]', formula_string) 
+    return formula_string
 
 def make_regex(var_name, period):
     '''Make regex to match var_name and period    
@@ -205,14 +205,14 @@ def make_regex(var_name, period):
     return re.compile(r'%s\[%s\]' % (var_name, period))
 
 
-def extract_variables_periods(formula_as_string):
+def extract_variables_periods(formula_string):
     '''Extract variables from formula with their respective periods
     
     >>> extract_variables_periods('GDP[1]+GDP_IQ[0]')
     [('GDP', 1), ('GDP_IQ', 0)]
     '''
     # Extract groups [(GDP, 0), (GDP_IQ, 1)]
-    return [(a, int(b)) for a, b in re.findall(r'(\w+)\[(\d+)\]', formula_as_string)]
+    return [(a, int(b)) for a, b in re.findall(r'(\w+)\[(\d+)\]', formula_string)]
 
 
 def check_parse_equation_as_formula():
@@ -221,10 +221,10 @@ def check_parse_equation_as_formula():
     '=C2*D4/100*D3/100'
     
     """
-    formula_as_string = 'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
+    formula_string = 'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
     variables_dict = {'': 0, 'GDP_IQ': 2, 'GDP': 1, 'GDP_IP': 3}
     time_period = 3
-    return parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
+    return parse_equation_to_xl_formula(formula_string, variables_dict, time_period)
 
 if __name__ == '__main__':
     import doctest
