@@ -1,7 +1,27 @@
-# ***************** new code *****************
 from sympy import var
 from config import TIME_INDEX_VARIABLES
+import xlrd
+import re
 
+
+############## same code as in parser_fucntion.py ##################
+
+def expand_shorthand(formula_string, variables):
+    """
+    >>> expand_shorthand('GDP_IQ+GDP_IP+GDP_IQ[t-1]', {'GDP_IP': 1, 'GDP_IQ': 2})
+    'GDP_IQ[t]+GDP_IP[t]+GDP_IQ[t-1]'
+    
+    >>> expand_shorthand('GDP * 0 + GDP [t-1] * GDP_IQ / 100 * GDP_IP[t] / 100', {'GDP_IP': 1, 'GDP_IQ': 2, 'GDP':3})
+    'GDP[t] * 0 + GDP [t-1] * GDP_IQ[t] / 100 * GDP_IP[t] / 100'
+    
+    >>> expand_shorthand('GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100', {'': 0, 'GDP_IQ': 2, 'GDP': 1, 'GDP_IP': 3})
+    'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
+    """
+    for var in variables:
+        if var != '':
+            formula_string = re.sub(var + r'(?!\s*[\dA-Za-z_^\[])',
+                                       var + '[t]', formula_string) 
+    return formula_string
 
 def get_excel_ref(cell):  
     """
@@ -12,83 +32,105 @@ def get_excel_ref(cell):
     
     >>> get_excel_ref((1,3))
     'D2'
+    """
+    row = cell[0]
+    col = cell[1]
+    return xlrd.colname(col) + str(row + 1)
     
-    """
-    # was xlwings's
-    # str(Range(get_sheet(), tuple(right_coords)).get_address(False, False))
-    # better (not todo): substitute with some xl package own formula engine or fork from there
-    return get_xl_col_litteral(cell[1]) + str(cell[0]+1) 
+def strip_all_whitespace(string):
+    return re.sub(r'\s+', '', string)
 
-def get_xl_col_litteral(zero_based_col_number):
-    """
-    Returns A...ZZZ type of string corresponding to *zero_based_col_number* col number
-    >>> get_xl_col_litteral(0)
-    'A'
-    >>> get_xl_col_litteral(3-1)
-    'C'
-    """
-    return "ABCDEFGHIJK"[zero_based_col_number]
+############## end of imported code ##################
 
-def sympyfy_formula(string):
-    return evaluate_variable(string)
-
-def evaluate_variable(x):
+def get_cell_row(variables_dict, var):
+    var = str(var)
     try:
-        x = eval(x)     # converting the formula into sympy expressions
-    except NameError:
-        raise NameError('Undefined variables in formulas, check excel sheet')
-    return x
-
+        return variables_dict[var] # Variable offset in file
+    except KeyError:
+        raise KeyError('Variable %s is in formula, but not found in variables_dict' % repr(var))
+    
+def convert_brackets(string):
+    """
+    >>> convert_brackets("GDP[t]")
+    'GDP(t)'
+    """
+    string = string.replace("[", "(")
+    string = string.replace("]", ")")
+    return string
+    
 def check_parse_equation_to_xl_formula():   
     """
     >>> check_parse_equation_to_xl_formula()
     =D2*E3*E4/10000
     """
-    dict_formula = {'dependent_var': 'GDP(t)',
-         'formula': 'GDP(t-1) * GDP_IP(t) / 100 * GDP_IQ(t) / 100'}
+    string_formula = 'GDP[t-1] * GDP_IP[t] / 100 * GDP_IQ[t] / 100'
    
-    # WARNING = actual dict_variables contains {'': 0,} - this is a bigger issue that it seems, to check later
+    # WARNING = actual dict_variables contains {'': 0,}
     dict_variables = {'GDP': 1, 'GDP_IP': 2, 'GDP_IQ': 3}
     
-    print (parse_equation_to_xl_formula(dict_formula, dict_variables, 4))
+    print (parse_equation_to_xl_formula(string_formula, dict_variables, 4))
+    
+def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
+    '''
+    Tests (as in formula_parser.py):
+    
+    >>> parse_equation_to_xl_formula('GDP[t]', {'GDP': 99}, 1)
+    '=B100'
+    
+    >>> parse_equation_to_xl_formula('GDP[t] * 0.5 + GDP[t-1] * 0.5',
+    ...                              {'GDP': 99}, 1)
+    '=0.5*A100 + 0.5*B100'
+    
+    >>> parse_equation_to_xl_formula('GDP * 0.5 + GDP[t-1] * 0.5',
+    ...                              {'GDP': 99}, 1)
+    '=0.5*A100 + 0.5*B100'
+    
+    >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
+    '=100*A3 + B2'
+    
+    >>> parse_equation_to_xl_formula('GDP[n] + GDP_IQ[n-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2}, 1)
+    '=100*A3 + B2'
+    
+    If some variable is missing from 'variable_dict' raise an exception:
+    
+    >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100', # doctest: +IGNORE_EXCEPTION_DETAIL 
+    ...                              {'GDP': 1}, 1)
+    Traceback (most recent call last):  
+    KeyError: Cannot parse formula, formula contains unknown variable: GDP_IQ
+    
+    If some variable is included in variables_dict but do not appear in formula_string
+    do nothing.
+    
+    >>> parse_equation_to_xl_formula('GDP[t] + GDP_IQ[t-1] * 100',
+    ...                              {'GDP': 1, 'GDP_IQ': 2, 'GDP_IP': 3}, 1)
+    '=100*A3 + B2'
 
-def get_cell_row(dict_variables, var_name):    
-    return dict_variables[str(var_name)]
-
-
-def parse_equation_to_xl_formula(formula_as_string, dict_variables, column):
-    varirable_list = [x for x in dict_variables.keys()] + TIME_INDEX_VARIABLES
+    '''
+    # TODO: from this line below 
+    #       - see if docstrings make sense, correct if necessary
+    #       - suggest simplfications, if any      
+    
+    formula_string = strip_all_whitespace(formula_string)
+    formula_string = expand_shorthand(formula_string, variables_dict.keys())
+    formula_string = convert_brackets(formula_string)
+   
+    varirable_list = [x for x in variables_dict.keys()] + TIME_INDEX_VARIABLES
 
     # declares sympy variables
     var(' '.join(varirable_list))
-
    
-    right_side_expression = sympyfy_formula(formula_as_string)
-    time_period = column
-    variables = dict_variables
-    
-    return get_excel_formula_as_string(right_side_expression, time_period, dict_variables)
-    
-    """
-    must have somewhere:
-        row, col - cell location
-        x[t] = x[t-1] - equation
-        x - variable name
-        variable_locations dict rows for all other variables {var1:row1, var2:row2}
-    require:
-        left-hand side is always [t]. cannot accept [t-1], [t+1] or other on the left of '='
-    algorithm:
-        in equation we search for terms that denote variables, possibly lagged
-        term = 'x(t-1)'
-        *col* is substituted for *t* in 't-1' and evaluated, result is column number
-        col = 5, index = 5-1 = 4
-        variable_locations['x'] equals row with that variable
-    returns:
-        excel formula to be pasted to (row, col)
+    right_side_expression = sympyfy_formula(formula_string)    
+    return get_excel_formula_string(right_side_expression, time_period, variables_dict)
 
-    """
-
-def get_excel_formula_as_string(right_side_expression, time_period, variables):
+def sympyfy_formula(string):
+    try:
+        return eval(string)     # converting the formula into sympy expressions
+    except NameError:
+        raise NameError('Undefined variables in formulas')
+    
+def get_excel_formula_string(right_side_expression, time_period, variables):
     """
     Using the right-hand side of a math expression (e.g. a(t)=a(t-1)*a_rate(t)), converted to sympy
     expression, and substituting the time index variable (t) in it, the function finds the Excel formula
@@ -148,16 +190,8 @@ def simplify_expression(expression, time_period, variables, depth=0):
             result.update(simplify_expression(segment, time_period, variables, depth))
 
     return result
-    
-    
-        
-           
            
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-    
-    print("\n*** Sample formula:")
-    check_parse_equation_to_xl_formula()
-
-
+    pass
