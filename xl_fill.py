@@ -234,7 +234,6 @@ def get_var_label(ar, row, var_column = 0):
         return ar[row, var_column]
                 
 def fill_array_with_excel_formulas(ar, equations_list):    
-        print(ar)    
         variables_dict = get_variable_rows_as_dict(ar)
         # WARNING: here we assume that all NaNs have a formula to it, wrong. 
         for cell in yield_cells_for_filling(ar):
