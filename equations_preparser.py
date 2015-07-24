@@ -3,9 +3,7 @@
 """
 
 import re
-
-# WARNING: duplicate
-TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
+from config import TIME_INDEX_VARIABLES
     
 def strip_timeindex(str_, time_litterals = TIME_INDEX_VARIABLES):
     """Returns variable name without time index.

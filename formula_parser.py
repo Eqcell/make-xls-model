@@ -1,9 +1,7 @@
 '''Module to parse formulas to their respective excel representations'''
 import re
 import xlrd
-
-#duplicate
-TIME_INDEX_VARIABLES = ['t', 'T', 'n', 'N']
+from config import TIME_INDEX_VARIABLES
 
 """EP:
 
@@ -123,6 +121,7 @@ def parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
     for var, period in variables_periods:
         # Calculate row, column of excel cell
         var_offset = get_cell_row(var, variables_dict)
+        
         # Get excel cell as string
         cell_string = get_excel_ref((var_offset, period))
         
@@ -228,4 +227,4 @@ def check_parse_equation_as_formula():
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    check_parse_equation_as_formula()
+    
