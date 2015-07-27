@@ -28,6 +28,9 @@ def get_mock_specification():
 ## Entry point + checks
 ###########################################################################
 def make_wb_array2(data_df, controls_df, equations_list, var_list):
+    var_list = None
+    # must through away it from call
+
     # assemble inputs into dataframe
     df = get_dataframe_before_equations(data_df, controls_df, var_list)   
      
@@ -171,15 +174,12 @@ def get_xl_formula(cell, var_name, equations_list, variables_dict):
     # use regex parser
     from formula_parser import parse_equation_to_xl_formula
     
-    try:
-        time_period = cell[1]            
-        return parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
+    time_period = cell[1]
+    return parse_equation_to_xl_formula(formula_as_string, variables_dict, time_period)
                 # formula_as_string is 'x(t-1) + 1'
                 # variables_dict is like {'x': 2} 
                 # time_teriod is interger    
-    except KeyError:
-        return ""          
-        
+
 
 ###########################################################################
 ## fill_array_with_excel_formulas
@@ -189,7 +189,9 @@ def yield_cells_for_filling(ar):
     """
     Yields coordinates of nan values from data area in *ar* 
     Data area is all of ar, but not row 0 or col 0
-          
+
+    Todo: must yield only columns
+
     Example:
     
     >>> gen = yield_cells_for_filling([['', 2013, 2014, 2015, 2016],

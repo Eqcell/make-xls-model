@@ -116,36 +116,69 @@ def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     '=B2+A3*100'
 
     '''
+    if formula_string == "avg_credit * credit_ir - avg_deposit * deposit_ir + liq * liq_ir":
+        dflag = False # True
+    else:
+        dflag = False
+
     # Strip whitespace
     formula_string = strip_all_whitespace(formula_string)
-    
+
     # Expands shorthand
     formula_string = expand_shorthand(formula_string, variables_dict.keys())
-    
+
     # parse and substitute time indices, eg. GDP[t-1] -> GDP[3] if t = 4
     formula_string = substitute_time_indices(formula_string, time_period)
-    
+    if dflag:
+        print(formula_string)
+
     # each setment in var_time_segments  is like 'GDP[0]', 'GDP_IQ[10]', etc
     var_time_segments = re.findall(r'(\w+\[\d+\])', formula_string)
-    for segment in var_time_segments: 
-        formula_string = replace_segment_in_formula(formula_string, segment, variables_dict)
-        
+    if dflag:
+        print("This is segments:")
+        print(var_time_segments)
+        print("This is variables_dict:")
+        print(variables_dict)
+
+    for segment in var_time_segments:
+        #print("Got into loop")
+        formula_string = replace_segment_in_formula(formula_string, segment, variables_dict, dflag)
+        if formula_string is None:
+            print("formula_string is now None")
+        if formula_string == "":
+            print("formula_string is now empty")
+
+
+    if dflag:
+        print("This is final formula:")
+        print(formula_string)
+
     return '=' + formula_string
 
 def strip_all_whitespace(string):
     return re.sub(r'\s+', '', string)
     
-def get_A1_reference(segment, variables_dict):
+def get_A1_reference(segment, variables_dict, dflag):
     var, period = extract_var_time(segment)
+    if dflag:
+        print(var, period)
     if var in variables_dict.keys():
         cell_row = get_cell_row(var, variables_dict)
-        cell_col = period  
-        return get_excel_ref(cell_row, period) 
+        cell_col = period
+        if dflag:
+            print(var, " is in variables_dict.keys():", get_excel_ref(cell_row, period))
+        return get_excel_ref(cell_row, period)
     else:
-        raise KeyError("Cannot parse formula, formula contains unknown variable: " + var)        
+        if dflag:
+            print("Got to else in get_A1_reference()")
+        raise KeyError("Cannot parse formula, formula contains unknown variable: " + var)
     
-def replace_segment_in_formula(formula_string, segment, variables_dict):
-    A1_ref = get_A1_reference(segment, variables_dict)
+def replace_segment_in_formula(formula_string, segment, variables_dict, dflag):
+    A1_ref = get_A1_reference(segment, variables_dict, dflag)
+
+    if dflag:
+        print (r'\b' + re.escape(segment))
+        print (A1_ref)
     # Match beginning of word
     return re.sub(r'\b' + re.escape(segment), A1_ref, formula_string)
     
