@@ -2,8 +2,7 @@
    control variables and spreadsheet parameters.      
    
 Usage:   
-   mxm.py --test
-   mxm.py <XLFILE> [--markup <YAML_FILE>]
+    mxm.py <xlfile> 
 """
 
 from docopt import docopt
@@ -11,8 +10,8 @@ import os
 from make_xl_model import make_xl_model
 
 def get_abs_filepath(arg):
-    """Returns absolute path to <XLFILE>"""
-    return os.path.abspath(arg["<XLFILE>"])
+    """Returns absolute path to <xlfile>"""
+    return os.path.abspath(arg["<xlfile"])
     
 def get_model_sheet(arg):
     MODEL_SHEET = 'model'

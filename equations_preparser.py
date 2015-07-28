@@ -1,6 +1,4 @@
-"""
-   Parsing of formulas as strings into dictionary. Used by either formula parser.  
-"""
+"""Parsing of formulas as strings into dictionary."""
 
 import re
     
@@ -43,9 +41,9 @@ def strip_timeindex(str_):
              
 
     
-def test_parse_to_formula_dict():    
+def test_parse_to_long_formula_dict():    
     """
-    >>> test_parse_to_formula_dict()
+    >>> test_parse_to_long_formula_dict()
     True
     True
     True
@@ -64,26 +62,30 @@ def test_parse_to_formula_dict():
     , {'credit' : ['credit', 'credit[t-1] * credit_rog']                } 
     ]
     for input_eq, expected_output in zip(inputs,expected_outputs):
-       print(expected_output == parse_to_formula_dict(input_eq))
+       print(expected_output == parse_to_long_formula_dict(input_eq))
 
 def parse_to_formula_dict(equations_list_of_strings):
-    """Returns a dict with left and right hand side of equations, referenced by variable name in keys."""
+    """
+    Returns a simple var:equation dictionary.
+    """
+    eq_dict0 = parse_to_long_formula_dict(equations_list_of_strings)
+    eq_dict = {}
+    for k in eq_dict0.keys():
+        eq_dict[k] = eq_dict0[k][1]        
+    return eq_dict 
+
+def parse_to_long_formula_dict(equations_list_of_strings):
+    """
+    Returns a dict with left and right hand side of equations, 
+    referenced by variable name in keys.
+    """
     parsed_eq_dict = {}
     for eq in equations_list_of_strings:
         dependent_var, formula = eq.split('=')
         key = strip_timeindex(dependent_var)
-        # parsed_eq_dict[key] = {'dependent_var': dependent_var.strip(), 'formula': formula.strip()}
         parsed_eq_dict[key] = [dependent_var.strip(), formula.strip()]
     return parsed_eq_dict
 
-def get_formula(var_name, eq_dict):
-    """Returns a formula for *var_name* based on contents of *eq_dict*.
-    
-    Test:
-    >>> get_formula('x', {'x':[None, 'x+1']})
-    'x+1'
-    """
-    return eq_dict[var_name][1]
     
 if __name__ == "__main__":   
     import doctest
