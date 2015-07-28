@@ -141,24 +141,32 @@ def make_array_before_equations(df):
 ## Main entry point
 ###########################################################################
 
-def make_xl_model(abs_filepath, sheet): 
-    print()    
+def get_input_variables(abs_filepath):
+    data_df, controls_df, equations_dict = get_spec_as_tuple(abs_filepath) 
+    var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
+    return data_df, controls_df, equations_dict, var_group
+
+def get_resulting_workbook_array(abs_filepath):
     
     # Get model specification 
-    data_df, controls_df, equations_dict = get_spec_as_tuple(abs_filepath)    
-    var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
-    print_variable_names_by_group(var_group)  
+    data_df, controls_df, equations_dict, var_group = get_input_variables(abs_filepath)    
     
     # Get array before formulas
     df = make_df_before_equations(data_df, controls_df, equations_dict)
     ar, pivot_col = make_array_before_equations(df)    
        
     # Fill array with formulas
+    # Note: fillable_var_list is effectively everything that appears on the left side of equations
+    # Todo: must compare *equations_dict* and *fillable_var_list*    
     fillable_var_list = var_group['data'] + var_group['eq']
     ar = fill_array_with_excel_formulas(ar, equations_dict, fillable_var_list, pivot_col)
+    return ar
+
+def make_xl_model(abs_filepath, sheet): 
+
+    ar = get_resulting_workbook_array(abs_filepath)    
     print("Array to write to Excel sheet:")     
-    print(ar)      
-    
+    print(ar) 
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
     
 if __name__ == '__main__':
