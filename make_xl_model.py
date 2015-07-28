@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from pprint import pprint
 from xlwings import Workbook, Range, Sheet
+
 from equations_preparser import parse_to_formula_dict
 from iterate_in_array import fill_array_with_excel_formulas   
    
@@ -52,10 +53,10 @@ def write_array_to_xl_using_xlwings(ar, file, sheet):
 ## Grouped variables
 ###########################################################################
    
-def print_variable_names_by_group(group_dict):    
-    print ("Data vars:", group_dict['data'])
-    print ("Control vars:", group_dict['control'])
-    print ("Equation-derived vars:", group_dict['eq'])    
+#def print_variable_names_by_group(group_dict):    
+#    print ("Data vars:", group_dict['data'])
+#    print ("Control vars:", group_dict['control'])
+#    print ("Equation-derived vars:", group_dict['eq'])    
     
 def get_variable_names_by_group(data_df, controls_df, equations_dict):
     """
@@ -156,8 +157,8 @@ def get_resulting_workbook_array(abs_filepath):
     ar, pivot_col = make_array_before_equations(df)    
        
     # Fill array with formulas
-    # Note: fillable_var_list is effectively everything that appears on the left side of equations
-    # Todo: must compare *equations_dict* and *fillable_var_list*    
+    # Todo: fillable_var_list is effectively everything that appears on the left side of equations
+    #       must compare *equations_dict* and *fillable_var_list*    
     fillable_var_list = var_group['data'] + var_group['eq']
     ar = fill_array_with_excel_formulas(ar, equations_dict, fillable_var_list, pivot_col)
     return ar

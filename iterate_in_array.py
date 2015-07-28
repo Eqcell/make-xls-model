@@ -12,7 +12,7 @@ def yield_cell_coords_for_filling(ar, pivot_labels, pivot_col):
     ...                                      ['GDP', 66190, 71406, np.nan, np.nan],
     ...                                      ['GDP_IP', np.nan, 107.1, 115.0, 113.0],
     ...                                      ['GDP_IQ', np.nan, 100.6,  95.0, 102.5]], 
-    ...                                      ["GDP"])
+    ...                                      ["GDP"], 0)
     >>> next(gen)
     (1, 3, 'GDP')
     >>> next(gen)
