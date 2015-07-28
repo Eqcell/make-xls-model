@@ -80,12 +80,12 @@ def get_variable_names_by_group(data_df, controls_df, equations_dict):
 ## Dataframe and array manipulation
 ###########################################################################
 
-<<<<<<< HEAD
+
 def make_empty_df(index_, columns_):
     df = pd.DataFrame(index=index_, columns=columns_)
     return  df 
     # Note can use: .fillna(0)
-=======
+
 def make_xl_model(abs_filepath, model_sheet): 
    print("\n***** Step 1/4")
    print("Done importing libraries")
