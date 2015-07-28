@@ -48,4 +48,8 @@ LIMITATIONS (by design):
 - one occurrence of variable in reulting sheet (variable appearing only once)
 - no formatting in Excel file
 
+<<<<<<< HEAD
  
+=======
+ 
+>>>>>>> origin/master
