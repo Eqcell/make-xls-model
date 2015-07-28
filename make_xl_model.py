@@ -86,29 +86,6 @@ def make_empty_df(index_, columns_):
     return  df 
     # Note can use: .fillna(0)
 
-def make_xl_model(abs_filepath, model_sheet): 
-   print("\n***** Step 1/4")
-   print("Done importing libraries")
-   
-   data_df, controls_df, equations_list, var_list = get_spec_as_tuple(abs_filepath)
-   print("\n***** Step 2/4")
-   print("Done reading specification from file")  
-   for spec_element in get_spec_as_tuple(abs_filepath):
-      print()
-      pprint(spec_element)
-   
-   ar = make_wb_array2(data_df, controls_df, equations_list, var_list)
-   # shorter notation for the above
-   # ar = make_wb_array2(*get_spec_as_tuple(abs_filepath))
-   print("\n***** Step 3/4")
-   print("Done creating 'wb_array'")   
-   pprint(ar)
-   
-   # write_array_to_xl_using_xlwings(ar, abs_filepath, model_sheet)
-   print("\n***** Step 4/4")
-   print("Finished writing to file: " + abs_filepath)
->>>>>>> origin/master
-
 def subset_df(df, var_list):
     try:
         return df[var_list]
@@ -165,8 +142,6 @@ def make_array_before_equations(df):
 ###########################################################################
 
 def make_xl_model(abs_filepath, sheet): 
-    
-<<<<<<< HEAD
     print()    
     
     # Get model specification 
