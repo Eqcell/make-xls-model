@@ -1,7 +1,7 @@
 '''Module to parse formulas to their respective excel representations'''
 import re
 import xlrd
-from config import TIME_INDEX_VARIABLES
+from globals import TIME_INDEX_VARIABLES
 
 """EP:
 
