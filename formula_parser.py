@@ -3,6 +3,87 @@ import re
 import xlrd
 from globals import TIME_INDEX_VARIABLES
 
+
+###########################################################################
+## Eqautions list -> equations dictionary
+########################################################################### 
+
+def strip_timeindex(str_):
+    """Returns variable name without time index.
+
+    >>> strip_timeindex("GDP(t)")
+    'GDP'
+    >>> strip_timeindex("GDP[t]")
+    'GDP'
+    >>> strip_timeindex("GDP")
+    'GDP'
+    >>> strip_timeindex('    GDP [ t ]')
+    'GDP'
+    >>> strip_timeindex(' GDP   ( t) ')
+    'GDP'
+    """
+    if "[" in str_ or "(" in str_:
+        pattern = r"\s*(\S*)\s*[(\[].*[)\]]"
+        m = re.search(pattern, str_)
+        if m:
+            return m.groups()[0]
+        else:
+            raise ValueError('Error extracting variable names from: ' + str_)
+    else:
+        return str_.strip()                 
+                 
+def yield_proper_eq_string(list_of_strings):    
+    for eq in list_of_strings:  
+        # disregard comments and strings without '='
+        if not eq.strip().startswith("#") and "=" in eq:
+            yield eq.strip()
+            
+def parse_single_equation(string):
+    left_side_expression, formula = string.split('=')
+    # todo: control left side of equations
+    key = strip_timeindex(left_side_expression)
+    return key, formula
+    
+def make_eq_dict(list_of_strings):
+    parsed_eq_dict = {}    
+    for eq_string in yield_proper_eq_string(list_of_strings):
+        key, formula = parse_single_equation(eq_string)
+        #         
+        if not key in parsed_eq_dict.keys():
+            parsed_eq_dict[key] = formula.strip()
+        else:
+            raise ValueError("Two equations for the same variable. " + 
+                             "\nVariable: " + key +          
+                             "\nExisting equation: " + parsed_eq_dict[key] +
+                             "\nAlternative equation: " + formula)
+    return parsed_eq_dict
+
+
+
+TEST_EQ_STRINGS = ["GDP[t] = GDP[t-1] * GDP_IQ / 100 * GDP_IP / 100       "                
+                 , "GDP is 1.05 * GDP[t+1]"
+                 , "# comment"
+                 , "ONE = 1 "]    
+
+MULTIPLE_ASSIGNMENT = ["GDP[t] = 1.05 * GDP[t+1]   ",
+                       "GDP[t] = GDP[t-1] * GDP_IQ / 100 * GDP_IP / 100  "]
+                                   
+WRONG_INDEX = ["GDP[t+1] = 1.05 * GDP[t+1]"]
+
+from pytest import raises
+
+def test_make_eq_dict():
+    assert make_eq_dict(TEST_EQ_STRINGS) == {'GDP': 'GDP[t-1] * GDP_IQ / 100 * GDP_IP / 100',
+                                             'ONE': "1"}
+    
+    with raises(ValueError):
+        make_eq_dict(MULTIPLE_ASSIGNMENT)
+        
+    # todo: check for x [wrong variable expression]  
+    # with raises(ValueError):
+    #     make_eq_dict(WRONG_INDEX)        
+    
+
 def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     '''Equivalent method of eqcell_core, but with text-based parser
 
@@ -50,10 +131,6 @@ def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     '=B2+A3*100'
 
     '''
-    if formula_string == "avg_credit * credit_ir - avg_deposit * deposit_ir + liq * liq_ir":
-        dflag = False # True
-    else:
-        dflag = False
 
     # Strip whitespace
     formula_string = strip_all_whitespace(formula_string)
@@ -63,56 +140,30 @@ def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
 
     # parse and substitute time indices, eg. GDP[t-1] -> GDP[3] if t = 4
     formula_string = substitute_time_indices(formula_string, time_period)
-    if dflag:
-        print(formula_string)
-
+    
     # each setment in var_time_segments  is like 'GDP[0]', 'GDP_IQ[10]', etc
     var_time_segments = re.findall(r'(\w+\[\d+\])', formula_string)
-    if dflag:
-        print("This is segments:")
-        print(var_time_segments)
-        print("This is variables_dict:")
-        print(variables_dict)
 
     for segment in var_time_segments:
         #print("Got into loop")
-        formula_string = replace_segment_in_formula(formula_string, segment, variables_dict, dflag)
-        if formula_string is None:
-            print("formula_string is now None")
-        if formula_string == "":
-            print("formula_string is now empty")
-
-
-    if dflag:
-        print("This is final formula:")
-        print(formula_string)
+        formula_string = replace_segment_in_formula(formula_string, segment, variables_dict)
 
     return '=' + formula_string
 
 def strip_all_whitespace(string):
     return re.sub(r'\s+', '', string)
     
-def get_A1_reference(segment, variables_dict, dflag):
+def get_A1_reference(segment, variables_dict):
     var, period = extract_var_time(segment)
-    if dflag:
-        print(var, period)
     if var in variables_dict.keys():
         cell_row = get_cell_row(var, variables_dict)
         cell_col = period
-        if dflag:
-            print(var, " is in variables_dict.keys():", get_excel_ref(cell_row, period))
         return get_excel_ref(cell_row, period)
     else:
-        if dflag:
-            print("Got to else in get_A1_reference()")
         raise KeyError("Cannot parse formula, formula contains unknown variable: " + var)
     
-def replace_segment_in_formula(formula_string, segment, variables_dict, dflag):
-    A1_ref = get_A1_reference(segment, variables_dict, dflag)
-
-    if dflag:
-        print (r'\b' + re.escape(segment))
-        print (A1_ref)
+def replace_segment_in_formula(formula_string, segment, variables_dict):
+    A1_ref = get_A1_reference(segment, variables_dict)
     # Match beginning of word
     return re.sub(r'\b' + re.escape(segment), A1_ref, formula_string)
     
@@ -214,5 +265,5 @@ def check_parse_equation_as_formula():
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    pass
+    test_make_eq_dict()
     

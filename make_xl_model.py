@@ -3,7 +3,7 @@ import numpy as np
 from pprint import pprint
 from xlwings import Workbook, Range, Sheet
 
-from equations_preparser import parse_to_formula_dict
+from formula_parser import make_eq_dict
 from iterate_in_array import fill_array_with_excel_formulas   
    
 ###########################################################################
@@ -18,20 +18,24 @@ def read_df(filename_, sheet_):
     
 def read_col(filename_, sheet_):    
     return read_sheet(filename_, sheet_, None).values.tolist()[0]  
-    
-def get_equations_as_dict(file):
-    eq_list = read_col(file, 'equations')
+
+def get_data_df(file):
+    return read_df(file, 'data') 
+
+def get_controls_df(file):
+    return read_df(file, 'controls') 
+
+def get_equations_dict(file):
+    list_of_strings = read_col(file, 'equations')
     # todo: 
     #     parse_to_formula_dict must:
     #        - control left side of equations
-    #        - supress comments
-    #        - disregard lines without '='     
-    return  parse_to_formula_dict(eq_list)
+    return make_eq_dict(list_of_strings)
     
 def get_spec_as_dict(file):   
-    return   { 'data': read_df(file, 'data')    
-       ,   'controls': read_df(file, 'controls') 
-       ,  'equations': get_equations_as_dict(file)
+    return   { 'data': get_data_df(file)    
+       ,   'controls': get_controls_df(file) 
+       ,  'equations': get_equations_dict(file)
        }
        
 def get_spec_as_tuple(file): 
@@ -139,7 +143,7 @@ def make_array_before_equations(df):
     return ar, pivot_col
     
 ###########################################################################
-## Main entry point
+## Input validation
 ###########################################################################
 
 def get_input_variables(abs_filepath):
@@ -147,7 +151,43 @@ def get_input_variables(abs_filepath):
     var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
     return data_df, controls_df, equations_dict, var_group
 
+def list_array(a):
+    return  " ".join(str(x) for x in a)
+
+def validate_input_from_sheets(abs_filepath):
+    # Get model specification 
+    data_df, controls_df, equations_dict, var_group = get_input_variables(abs_filepath)  
+    
+    validate_continious_year(data_df, controls_df)
+    validate_coverage_by_equations(var_group, equations_dict)
+    
+def validate_continious_year(data_df, controls_df):
+    # Data and controls must have continious timeline
+    timeline = data_df.index.tolist() + controls_df.index.tolist()
+    ref_timeline = [int(x) for x in range(min(timeline), max(timeline) + 1)]
+    if not timeline == ref_timeline:
+        raise ValueError("Timeline derived from 'data' and 'controls' is not continious." +
+            "\nData timeline: " +      list_array(data_df.index.tolist()) +
+            "\nControls timeline: " +  list_array(controls_df.index.tolist()) +
+            "\nResulting timeline: " + list_array(timeline) +
+            "\nExpected timeline: " +  list_array(ref_timeline)
+            )
+
+def validate_coverage_by_equations(var_group, equations_dict):    
+    # Validate coverage of data_df with equations
+    data_orphan_vars = [v for v in var_group["data"] if v not in equations_dict.keys()]
+    if data_orphan_vars:
+        print(data_orphan_vars)
+        raise ValueError("All data variables must be covered by equations." +
+                         "\nNot covered: " + list_array(data_orphan_vars))
+###########################################################################
+## Main entry point
+###########################################################################
+                         
 def get_resulting_workbook_array(abs_filepath):
+
+    # Require all data is covered by equations
+    validate_input_from_sheets(abs_filepath)
     
     # Get model specification 
     data_df, controls_df, equations_dict, var_group = get_input_variables(abs_filepath)    
@@ -166,7 +206,7 @@ def get_resulting_workbook_array(abs_filepath):
 def make_xl_model(abs_filepath, sheet): 
 
     ar = get_resulting_workbook_array(abs_filepath)    
-    print("Array to write to Excel sheet:")     
+    print("\nArray to write to Excel sheet:")     
     print(ar) 
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
     

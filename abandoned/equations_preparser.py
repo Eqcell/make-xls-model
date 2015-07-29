@@ -7,25 +7,17 @@ def strip_timeindex(str_):
     
        Accepted *str_*: 'GDP', 'GDP[t]', 'GDP(t)', '    GDP [ t ]', ' GDP   ( t) '       
     
-    TODO: must work both with [t] and t()
-          must accept variable names without brackets
-          must accept whitespace anywhere
-          (see failed tests)
-   
-    Passed test:
+       Must accept variable names without brackets
+       Must accept whitespace anywhere
+
     >>> strip_timeindex("GDP(t)")
     'GDP'
-        
-    Failing tests (4 tests):    
     >>> strip_timeindex("GDP[t]")
     'GDP'
-
     >>> strip_timeindex("GDP")
     'GDP'
-    
     >>> strip_timeindex('    GDP [ t ]')
     'GDP'
-     
     >>> strip_timeindex(' GDP   ( t) ')
     'GDP'
     """
@@ -74,19 +66,38 @@ def parse_to_formula_dict(equations_list_of_strings):
         eq_dict[k] = eq_dict0[k][1]        
     return eq_dict 
 
+
+
 def parse_to_long_formula_dict(equations_list_of_strings):
     """
     Returns a dict with left and right hand side of equations, 
     referenced by variable name in keys.
+    
+    >>> parse_to_long_formula_dict(["GDP"])
+    'GDP'
     """
+    
+    # todo: 
+    #     parse_to_formula_dict must:
+    #        - control left side of equations
+    #        - supress comments
+    #        - disregard lines without '='       
+    
     parsed_eq_dict = {}
+    rotten_eq_strings = []
     for eq in equations_list_of_strings:
-        dependent_var, formula = eq.split('=')
-        key = strip_timeindex(dependent_var)
-        parsed_eq_dict[key] = [dependent_var.strip(), formula.strip()]
-    return parsed_eq_dict
+        eq = eq.strip() 
+        if not eq.startswith("#") and "=" in eq:
+            left_side_expression, formula = eq.split('=')
+            key = strip_timeindex(left_side_expression)
+            parsed_eq_dict[key] = [dependent_var.strip(), formula.strip()]
+        else:
+            rotten_eq_strings.extend([eq])
+             
+    return parsed_eq_dict, rotten_eq_strings
 
     
 if __name__ == "__main__":   
     import doctest
-    doctest.testmod()
+    #doctest.testmod()
+    test_make_eq_dict()
