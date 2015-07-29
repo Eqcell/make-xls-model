@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
+import os
 from pprint import pprint
 from xlwings import Workbook, Range, Sheet
+from openpyxl import load_workbook
 
 from formula_parser import make_eq_dict
 from iterate_in_array import fill_array_with_excel_formulas   
+
    
 ###########################################################################
 ## Import from Excel workbook (using pandas)
@@ -43,7 +46,7 @@ def get_spec_as_tuple(file):
     return s['data'], s['controls'], s['equations']
  
 ###########################################################################
-## Export to Excel workbook (using xlwings/pywin32)
+## Export to Excel workbook (using xlwings/pywin32 or openpyxl)
 ###########################################################################
 
 def write_array_to_xl_using_xlwings(ar, file, sheet):  
@@ -53,6 +56,27 @@ def write_array_to_xl_using_xlwings(ar, file, sheet):
     Range(sheet, 'A1').value = ar.astype(str)    
     wb.save()
 
+#--------------------------------------------------------------------------
+# Not tested
+
+def change_extension(file):
+    return os.path.splitext(file) + ".xlsx"
+
+def iterate_over_array(ar):
+    for i, row in enumerate(ar):       
+         for j, val in enumerate(row):
+                yield i, j, to_float(val)
+                
+def write_array_to_xlsx_using_openpyxl(ar, file, sheet):  
+    wb = load_workbook(file)
+    ws = wb.get_sheet_by_name(sheet)
+    for i, j, val in iterate_over_array(ar):
+        ws.cell(row = i, column = j).value = val
+    new_filename = change_extension(file)
+    wb.save(new_filename) 
+#--------------------------------------------------------------------------
+
+    
 ###########################################################################
 ## Grouped variables
 ###########################################################################
@@ -203,8 +227,10 @@ def get_resulting_workbook_array(abs_filepath):
     ar = fill_array_with_excel_formulas(ar, equations_dict, fillable_var_list, pivot_col)
     return ar
 
+def update_xl_model(abs_filepath, sheet): 
+    pass
+    
 def make_xl_model(abs_filepath, sheet): 
-
     ar = get_resulting_workbook_array(abs_filepath)    
     print("\nArray to write to Excel sheet:")     
     print(ar) 
