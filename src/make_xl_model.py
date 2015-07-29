@@ -206,6 +206,14 @@ def insert_empty_row_before_variable(ar, var_name, pivot_col, top_value = ""):
     ar[row_position, 0] = top_value     
     return ar
 
+def proxy_dg(x):
+    # return "NAME OF " + str(x)
+    return "" 
+
+def insert_column(ar, pivot_col, datagen_func):
+    column_values = [datagen_func(x) for x in ar[:, pivot_col]]
+    ar = np.insert(ar, 0, column_values, axis = 1)
+    return ar, pivot_col + 1     
 
 def make_array_before_equations(df):
     """
@@ -242,13 +250,17 @@ def get_resulting_workbook_array(abs_filepath):
     df = make_df_before_equations(data_df, controls_df, equations_dict)
     ar, pivot_col = make_array_before_equations(df) 
     
+    # Decorate with extra column
+    ar, pivot_col = insert_column(ar, pivot_col, proxy_dg)    
+    
     # Decorate with extra empty rows
     def insert_row(var_name, top_value):
         return insert_empty_row_before_variable(ar, var_name, pivot_col, top_value)
-    if var_group['eq']:
-        ar = insert_row(var_group['eq'][0], "Equation-derived:")
-    ar = insert_row(var_group['control'][0], "Control parameters:")
 
+    ar = insert_row(var_group['data'][0],    "Исходные данные и прогноз")
+    if var_group['eq']:
+        ar = insert_row(var_group['eq'][0],  "Переменные из уравнений")
+    ar = insert_row(var_group['control'][0], "Управляющие параметры")
        
     # Fill array with formulas
     # Todo: fillable_var_list is effectively everything that appears on the left side of equations
