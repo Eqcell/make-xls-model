@@ -27,14 +27,17 @@ def yield_cell_coords_for_filling(ar, pivot_labels, pivot_col):
                         yield i, j, var_label
 
 def get_variable_rows_as_dict(array, pivot_col = 0):
-    """
-    >>> var_dict = variable_to_row_dict([['', 2013, 2014, 2015, 2016],
-    ...                                      ['GDP', 66190, 71406, np.nan, np.nan],
-    ...                                      ['GDP_IP', np.nan, 107.1, 115.0, 113.0],
-    ...                                      ['GDP_IQ', np.nan, 100.6,  95.0, 102.5]], 
-    ...                                      ["GDP"], 0)
-    
-    """
+#    """
+#     import numpy as np   
+#     var_dict = variable_to_row_as_dict(np.array([
+#    ...       ['', '2013', '2014', '2015', '2016']
+#    ...      ,['GDP', 66190, 71406, '=C2*D3/100*D4/100', '=D2*E3/100*E4/100']
+#    ...      ,['GDP_IQ', 101.3407,  100.6404, 95.0,  102.5]
+#    ...      ,['GDP_IP', 105.0467,  107.1941, 115.0, 113.0] ]
+#    ...      , dtype=object))
+#     var_dict['GDP']
+#    1   
+#    """
     
     variable_to_row_dict = {}        
     for i, label in enumerate(array[:,pivot_col]):
