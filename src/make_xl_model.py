@@ -249,10 +249,10 @@ def make_array_before_equations(df):
                          
 def get_resulting_workbook_array(abs_filepath):
 
-    # Require all data is covered by equations
+    # Require all data is covered by equations + timelines are continious
     validate_input_from_sheets(abs_filepath)
     
-    # Get model specification 
+    # Get model specification
     data_df, controls_df, equations_dict, var_group, var_desc_dict = get_input_variables(abs_filepath)    
     
     # Get array before formulas
@@ -273,12 +273,16 @@ def get_resulting_workbook_array(abs_filepath):
     ar, pivot_col = insert_column(ar, pivot_col, null)      
     
     # Decorate with extra empty rows
-    def insert_row(var_name, top_value):
-        return insert_empty_row_before_variable(ar, var_name, pivot_col, top_value)
-    ar = insert_row(var_group['data'][0],    "Исходные данные и прогноз")
+    def insert_row(var_name, start_cell_value):
+        return insert_empty_row_before_variable(ar, var_name, 
+                                                pivot_col, start_cell_value)
+        
+    i = 1     
+    ar = insert_row(var_group['data'][0], str(i) + ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ")
     if var_group['eq']:
-        ar = insert_row(var_group['eq'][0],  "Переменные из уравнений")
-    ar = insert_row(var_group['control'][0], "Управляющие параметры")
+        i = i + 1
+        ar = insert_row(var_group['eq'][0], str(i) + ". ПЕРЕМЕННЫЕ ИЗ УРАВНЕНИЙ")
+    ar = insert_row(var_group['control'][0], str(i) + ". УПРАВЛЯЮЩИЕ ПАРАМЕТРЫ")
        
     # Fill array with formulas
     # Todo: fillable_var_list is effectively everything that appears on the left side of equations
