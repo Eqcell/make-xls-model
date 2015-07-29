@@ -50,6 +50,47 @@ def get_spec_as_tuple(file):
     return s['data'], s['controls'], s['equations']
  
 ###########################################################################
+## Input validation
+###########################################################################
+
+def get_input_variables(abs_filepath):
+    data_df, controls_df, equations_dict = get_spec_as_tuple(abs_filepath) 
+    var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
+    return data_df, controls_df, equations_dict, var_group
+
+def list_array(a):
+    return  " ".join(str(x) for x in a)
+
+def validate_input_from_sheets(abs_filepath):
+    # Get model specification 
+    data_df, controls_df, equations_dict, var_group = get_input_variables(abs_filepath)  
+    
+    validate_continious_year(data_df, controls_df)
+    validate_coverage_by_equations(var_group, equations_dict)
+    
+def validate_continious_year(data_df, controls_df):
+    # Data and controls must have continious timeline
+    years1 = data_df.index.tolist() 
+    years2 = controls_df.index.tolist()
+    timeline = years1 + years2
+    ref_timeline = [x for x in range(min(timeline), max(timeline) + 1)]
+    if not timeline == ref_timeline:
+        raise ValueError("Timeline derived from 'data' and 'controls' is not continious." +
+            "\nData timeline: "      + list_array(years1)   +
+            "\nControls timeline: "  + list_array(years2)   +
+            "\nResulting timeline: " + list_array(timeline) +
+            "\nExpected timeline: "  + list_array(ref_timeline)
+            )
+
+def validate_coverage_by_equations(var_group, equations_dict):    
+    # Validate coverage of data_df with equations
+    data_orphan_vars = [v for v in var_group["data"] if v not in equations_dict.keys()]
+    if data_orphan_vars:
+        print(data_orphan_vars)
+        raise ValueError("All data variables must be covered by equations." +
+                         "\nNot covered: " + list_array(data_orphan_vars))
+                         
+###########################################################################
 ## Export to Excel workbook (using xlwings/pywin32 or openpyxl)
 ###########################################################################
 
@@ -81,7 +122,6 @@ def write_array_to_xlsx_using_openpyxl(ar, file, sheet):
     wb.save(new_filename) 
     
 #--------------------------------------------------------------------------
-
     
 ###########################################################################
 ## Grouped variables
@@ -112,7 +152,7 @@ def get_variable_names_by_group(data_df, controls_df, equations_dict):
     return {'control': g1, 'data': g2, 'eq': g3}
 
 ###########################################################################
-## Dataframe and array manipulation
+## Dataframe manipulation
 ###########################################################################
 
 def make_empty_df(index_, columns_):
@@ -152,6 +192,21 @@ def make_df_before_equations(data_df, controls_df, equations_dict):
     var_list = var_group['data'] +  var_group['eq'] + var_group['control']
     return subset_df(df, var_list)
 
+
+###########################################################################
+## Array manipulations
+###########################################################################
+
+from iterate_in_array import get_variable_rows_as_dict
+
+def insert_empty_row_before_variable(ar, var_name, pivot_col, top_value = ""):
+    variables_dict = get_variable_rows_as_dict(ar, pivot_col)
+    row_position = variables_dict[var_name] 
+    ar = np.insert(ar, row_position, "", axis = 0) 
+    ar[row_position, 0] = top_value     
+    return ar
+
+
 def make_array_before_equations(df):
     """
     Convert dataframe to array, decorate with extra top row an extra left-side columns.
@@ -170,46 +225,7 @@ def make_array_before_equations(df):
     
     return ar, pivot_col
     
-###########################################################################
-## Input validation
-###########################################################################
 
-def get_input_variables(abs_filepath):
-    data_df, controls_df, equations_dict = get_spec_as_tuple(abs_filepath) 
-    var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
-    return data_df, controls_df, equations_dict, var_group
-
-def list_array(a):
-    return  " ".join(str(x) for x in a)
-
-def validate_input_from_sheets(abs_filepath):
-    # Get model specification 
-    data_df, controls_df, equations_dict, var_group = get_input_variables(abs_filepath)  
-    
-    validate_continious_year(data_df, controls_df)
-    validate_coverage_by_equations(var_group, equations_dict)
-    
-def validate_continious_year(data_df, controls_df):
-    # Data and controls must have continious timeline
-    years1 = data_df.index.tolist() 
-    years2 = controls_df.index.tolist()
-    timeline = years1 + years2
-    ref_timeline = [x for x in range(min(timeline), max(timeline) + 1)]
-    if not timeline == ref_timeline:
-        raise ValueError("Timeline derived from 'data' and 'controls' is not continious." +
-            "\nData timeline: " +      list_array(years1) +
-            "\nControls timeline: " +  list_array(years2) +
-            "\nResulting timeline: " + list_array(timeline) +
-            "\nExpected timeline: " +  list_array(ref_timeline)
-            )
-
-def validate_coverage_by_equations(var_group, equations_dict):    
-    # Validate coverage of data_df with equations
-    data_orphan_vars = [v for v in var_group["data"] if v not in equations_dict.keys()]
-    if data_orphan_vars:
-        print(data_orphan_vars)
-        raise ValueError("All data variables must be covered by equations." +
-                         "\nNot covered: " + list_array(data_orphan_vars))
 ###########################################################################
 ## Main entry point
 ###########################################################################
@@ -224,7 +240,15 @@ def get_resulting_workbook_array(abs_filepath):
     
     # Get array before formulas
     df = make_df_before_equations(data_df, controls_df, equations_dict)
-    ar, pivot_col = make_array_before_equations(df)    
+    ar, pivot_col = make_array_before_equations(df) 
+    
+    # Decorate with extra empty rows
+    def insert_row(var_name, top_value):
+        return insert_empty_row_before_variable(ar, var_name, pivot_col, top_value)
+    if var_group['eq']:
+        ar = insert_row(var_group['eq'][0], "Equation-derived:")
+    ar = insert_row(var_group['control'][0], "Control parameters:")
+
        
     # Fill array with formulas
     # Todo: fillable_var_list is effectively everything that appears on the left side of equations
