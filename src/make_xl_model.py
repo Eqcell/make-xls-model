@@ -208,6 +208,7 @@ def make_df_before_equations(data_df, controls_df, equations_dict):
 
 from iterate_in_array import get_variable_rows_as_dict
 
+
 def insert_empty_row_before_variable(ar, var_name, pivot_col, top_value = ""):
     variables_dict = get_variable_rows_as_dict(ar, pivot_col)
     row_position = variables_dict[var_name] 
@@ -215,10 +216,7 @@ def insert_empty_row_before_variable(ar, var_name, pivot_col, top_value = ""):
     ar[row_position, 0] = top_value     
     return ar
 
-def proxy_dg(x):
-    # return "NAME OF " + str(x)
-    return "" 
-
+    
 def insert_column(ar, pivot_col, datagen_func):
     column_values = [datagen_func(x) for x in ar[:, pivot_col]]
     ar = np.insert(ar, 0, column_values, axis = 1)
@@ -242,7 +240,6 @@ def make_array_before_equations(df):
     
     return ar, pivot_col
     
-
 ###########################################################################
 ## Main entry point
 ###########################################################################
@@ -271,8 +268,7 @@ def get_resulting_workbook_array(abs_filepath, slim = True):
                return ""       
            
         ar, pivot_col = insert_column(ar, pivot_col, get_var_desc)
-        ar, pivot_col = insert_column(ar, pivot_col, null)      
-        
+        ar, pivot_col = insert_column(ar, pivot_col, null)              
        
         
         # Decorate with extra empty rows
@@ -280,8 +276,9 @@ def get_resulting_workbook_array(abs_filepath, slim = True):
             return insert_empty_row_before_variable(ar, var_name, 
                                                     pivot_col, start_cell_value)
         def yield_chapter_numbers():
-            for i in [1,2,3]:
-               yield str(i)        
+            for i in [1,2,3,4]:
+               yield str(i)    
+               
         gen = yield_chapter_numbers()
         ar = insert_row(var_group['data'][0],
                         next(gen) + ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ")
@@ -297,7 +294,22 @@ def get_resulting_workbook_array(abs_filepath, slim = True):
     #       must compare *equations_dict* and *fillable_var_list* 
     fillable_var_list = var_group['data'] + var_group['eq']
     ar = fill_array_with_excel_formulas(ar, equations_dict, fillable_var_list, pivot_col)
+    
+    if not slim:
+        ar = append_row_to_array(ar)
+        ar[-1,0] = next(gen) + ". УРАВНЕНИЯ"
+        ar = add_equations_to_array (ar, pivot_col,equations_dict)
+         
+    return ar
 
+def append_row_to_array(ar):
+    row = [["" for x in ar[0,:]]]    
+    return np.append(ar, row, axis = 0)
+    
+def add_equations_to_array (ar, pivot_col, eq_dict):    
+    for var, eq in eq_dict.items():
+        ar =  append_row_to_array(ar)
+        ar[-1, pivot_col] = var + " = " + eq
     return ar
 
 def update_xl_model(abs_filepath, sheet, pivot_col = 0): 
