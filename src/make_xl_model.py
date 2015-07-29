@@ -13,18 +13,25 @@ from iterate_in_array import fill_array_with_excel_formulas
 ## Generic import from Excel workbook (using pandas)
 ###########################################################################
 
-def read_sheet(filename_, sheet_, header_):    
-    return pd.read_excel(filename_, sheetname=sheet_, header = header_).transpose()
+def read_sheet(filename, sheet, header):    
+    return pd.read_excel(filename, sheetname=sheet, header = header).transpose()
     
-def read_df(filename_, sheet_):    
-    return read_sheet(filename_, sheet_, 0)
+def read_df(filename, sheet):    
+    return read_sheet(filename, sheet, 0)
     
-def read_col(filename_, sheet_):    
-    return read_sheet(filename_, sheet_, None).values.tolist()[0]  
+def read_col(filename, sheet):    
+    return read_sheet(filename, sheet, None).values.tolist()[0]  
     
 ###########################################################################
 ## Import model specification, make it available as dict or tuple 
 ###########################################################################
+
+# todo:
+# must check data, control, equations (and optionally names) sheets exist in workbook
+# for --make mode
+
+# must check 'model' sheet
+# for --update mode 
     
 def get_data_df(file):
     return read_df(file, 'data') 
@@ -39,31 +46,61 @@ def get_equations_dict(file):
     #        - control left side of equations
     return make_eq_dict(list_of_strings)
     
+def get_names_dict(file):
+    df = read_sheet(file, 'names', None)
+    m = df.as_matrix()
+    return {var:desc for var, desc in zip(m[0], m[1])} 
+    
 def get_spec_as_dict(file):   
     return   { 'data': get_data_df(file)    
        ,   'controls': get_controls_df(file) 
        ,  'equations': get_equations_dict(file)
+       ,      'names': get_names_dict(file)
        }
-       
-def get_spec_as_tuple(file): 
+
+def get_core_spec_as_tuple(file): 
     s = get_spec_as_dict(file)
     return s['data'], s['controls'], s['equations']
  
+def get_input_variables(abs_filepath):
+    data_df, controls_df, equations_dict = get_core_spec_as_tuple(abs_filepath) 
+    var_groups = get_variable_names_by_group(data_df, controls_df, equations_dict)
+    var_names_dict = get_names_dict(abs_filepath)    
+    return data_df, controls_df, equations_dict, var_groups, var_names_dict
+    
+###########################################################################
+## Grouped variables
+###########################################################################
+   
+def get_variable_names_by_group(data_df, controls_df, equations_dict):
+    """
+    Obtain non-overlapping variable labels grouped into data, control 
+    and equation-derived variables.    
+    """
+    
+    # all variables from controls_df must persist in var_list (group 1 of variables)
+    g1 = controls_df.columns.values.tolist()
+    
+    # group 2: variables in data_df not listed in control_df
+    dvars = data_df.columns.values.tolist()
+    g2 = [d for d in dvars if d not in g1]
+
+    # group 3: variables on leftside of equations not listed in group 1 and 2
+    evars = equations_dict.keys()
+    g3 = [e for e in evars if e not in g1 + g2]
+    
+    return {'control': g1, 'data': g2, 'eq': g3}
+    
 ###########################################################################
 ## Input validation
 ###########################################################################
-
-def get_input_variables(abs_filepath):
-    data_df, controls_df, equations_dict = get_spec_as_tuple(abs_filepath) 
-    var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
-    return data_df, controls_df, equations_dict, var_group
 
 def list_array(a):
     return  " ".join(str(x) for x in a)
 
 def validate_input_from_sheets(abs_filepath):
     # Get model specification 
-    data_df, controls_df, equations_dict, var_group = get_input_variables(abs_filepath)  
+    data_df, controls_df, equations_dict, var_group, var_names_dict = get_input_variables(abs_filepath)  
     
     validate_continious_year(data_df, controls_df)
     validate_coverage_by_equations(var_group, equations_dict)
@@ -123,34 +160,6 @@ def write_array_to_xlsx_using_openpyxl(ar, file, sheet):
     
 #--------------------------------------------------------------------------
     
-###########################################################################
-## Grouped variables
-###########################################################################
-   
-#def print_variable_names_by_group(group_dict):    
-#    print ("Data vars:", group_dict['data'])
-#    print ("Control vars:", group_dict['control'])
-#    print ("Equation-derived vars:", group_dict['eq'])    
-    
-def get_variable_names_by_group(data_df, controls_df, equations_dict):
-    """
-    Obtain non-overlapping variable labels grouped into data, control 
-    and equation-derived variables.    
-    """
-    
-    # all variables from controls_df must persist in var_list (group 1 of variables)
-    g1 = controls_df.columns.values.tolist()
-    
-    # group 2: variables in data_df not listed in control_df
-    dvars = data_df.columns.values.tolist()
-    g2 = [d for d in dvars if d not in g1]
-
-    # group 3: variables on leftside of equations not listed in group 1 and 2
-    evars = equations_dict.keys()
-    g3 = [e for e in evars if e not in g1 + g2]
-    
-    return {'control': g1, 'data': g2, 'eq': g3}
-
 ###########################################################################
 ## Dataframe manipulation
 ###########################################################################
@@ -244,19 +253,28 @@ def get_resulting_workbook_array(abs_filepath):
     validate_input_from_sheets(abs_filepath)
     
     # Get model specification 
-    data_df, controls_df, equations_dict, var_group = get_input_variables(abs_filepath)    
+    data_df, controls_df, equations_dict, var_group, var_desc_dict = get_input_variables(abs_filepath)    
     
     # Get array before formulas
     df = make_df_before_equations(data_df, controls_df, equations_dict)
     ar, pivot_col = make_array_before_equations(df) 
     
-    # Decorate with extra column
-    ar, pivot_col = insert_column(ar, pivot_col, proxy_dg)    
+    # Decorate with extra columns
+    def null(x):    
+       return ""
+       
+    def get_var_desc(varname):
+       if varname in var_desc_dict.keys():
+           return var_desc_dict[varname]
+       else:
+           return ""       
+       
+    ar, pivot_col = insert_column(ar, pivot_col, get_var_desc)
+    ar, pivot_col = insert_column(ar, pivot_col, null)      
     
     # Decorate with extra empty rows
     def insert_row(var_name, top_value):
         return insert_empty_row_before_variable(ar, var_name, pivot_col, top_value)
-
     ar = insert_row(var_group['data'][0],    "Исходные данные и прогноз")
     if var_group['eq']:
         ar = insert_row(var_group['eq'][0],  "Переменные из уравнений")
