@@ -11,7 +11,7 @@ from globals import MODEL_SHEET
 
 def get_abs_filepath(arg):
    """Returns absolute path to <xlfile>"""
-   return os.path.abspath(arg["<xlfile"])
+   return os.path.abspath(arg["<xlfile>"])
     
 def get_model_sheet(arg):
    return MODEL_SHEET

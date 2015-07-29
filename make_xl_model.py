@@ -232,7 +232,7 @@ def update_xl_model(abs_filepath, sheet):
     
 def make_xl_model(abs_filepath, sheet): 
     ar = get_resulting_workbook_array(abs_filepath)    
-    print("\nArray to write to Excel sheet:")     
+    print("\nResulting Excel sheet as array:")     
     print(ar) 
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
     
