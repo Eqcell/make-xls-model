@@ -1,15 +1,13 @@
-"""Make Excel file with spreadsheet model based on historic data, equations, 
-   control variables and spreadsheet parameters.      
+"""Make spreadsheet model in Excel file based on historic data, equations, and control parameters.      
    
 Usage:   
     mxm.py <xlfile> [--make | --update]
 """
 
-MODEL_SHEET = 'model'
-
 from docopt import docopt
 import os
 from make_xl_model import make_xl_model, update_xl_model
+from globals import MODEL_SHEET
 
 def get_abs_filepath(arg):
    """Returns absolute path to <xlfile>"""
