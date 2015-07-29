@@ -10,7 +10,7 @@ from iterate_in_array import fill_array_with_excel_formulas
 
    
 ###########################################################################
-## Import from Excel workbook (using pandas)
+## Generic import from Excel workbook (using pandas)
 ###########################################################################
 
 def read_sheet(filename_, sheet_, header_):    
@@ -21,7 +21,11 @@ def read_df(filename_, sheet_):
     
 def read_col(filename_, sheet_):    
     return read_sheet(filename_, sheet_, None).values.tolist()[0]  
-
+    
+###########################################################################
+## Import model specification, make it available as dict or tuple 
+###########################################################################
+    
 def get_data_df(file):
     return read_df(file, 'data') 
 
@@ -50,7 +54,8 @@ def get_spec_as_tuple(file):
 ###########################################################################
 
 def write_array_to_xl_using_xlwings(ar, file, sheet):  
-    # Note: if file is opened In Excel, it must be first saved before writing new output to it, but it may be left open in Excel application. 
+    # Note: if file is opened In Excel, it must be first saved before writing 
+    #       new output to it, but it may be left open in Excel application. 
     wb = Workbook(file)
     Sheet(sheet).activate()        
     Range(sheet, 'A1').value = ar.astype(str)    
@@ -74,6 +79,7 @@ def write_array_to_xlsx_using_openpyxl(ar, file, sheet):
         ws.cell(row = i, column = j).value = val
     new_filename = change_extension(file)
     wb.save(new_filename) 
+    
 #--------------------------------------------------------------------------
 
     
@@ -109,11 +115,9 @@ def get_variable_names_by_group(data_df, controls_df, equations_dict):
 ## Dataframe and array manipulation
 ###########################################################################
 
-
 def make_empty_df(index_, columns_):
     df = pd.DataFrame(index=index_, columns=columns_)
     return  df 
-    # Note can use: .fillna(0)
 
 def subset_df(df, var_list):
     try:
@@ -128,8 +132,8 @@ def subset_df(df, var_list):
       
 def make_df_before_equations(data_df, controls_df, equations_dict):
     """
-    Return a dataframe containing all variable values from data, controls and 
-    placeholder for new varaibales from equations.
+    Return a dataframe containing data, controls and a placeholder for new 
+    varaibales derived in equations.
     """    
     
     var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
@@ -187,12 +191,14 @@ def validate_input_from_sheets(abs_filepath):
     
 def validate_continious_year(data_df, controls_df):
     # Data and controls must have continious timeline
-    timeline = data_df.index.tolist() + controls_df.index.tolist()
-    ref_timeline = [int(x) for x in range(min(timeline), max(timeline) + 1)]
+    years1 = data_df.index.tolist() 
+    years2 = controls_df.index.tolist()
+    timeline = years1 + years2
+    ref_timeline = [x for x in range(min(timeline), max(timeline) + 1)]
     if not timeline == ref_timeline:
         raise ValueError("Timeline derived from 'data' and 'controls' is not continious." +
-            "\nData timeline: " +      list_array(data_df.index.tolist()) +
-            "\nControls timeline: " +  list_array(controls_df.index.tolist()) +
+            "\nData timeline: " +      list_array(years1) +
+            "\nControls timeline: " +  list_array(years2) +
             "\nResulting timeline: " + list_array(timeline) +
             "\nExpected timeline: " +  list_array(ref_timeline)
             )
@@ -222,7 +228,8 @@ def get_resulting_workbook_array(abs_filepath):
        
     # Fill array with formulas
     # Todo: fillable_var_list is effectively everything that appears on the left side of equations
-    #       must compare *equations_dict* and *fillable_var_list*    
+    #       must compare *equations_dict* and *fillable_var_list* 
+       
     fillable_var_list = var_group['data'] + var_group['eq']
     ar = fill_array_with_excel_formulas(ar, equations_dict, fillable_var_list, pivot_col)
     return ar
