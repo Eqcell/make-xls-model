@@ -121,7 +121,7 @@ def test_resulting_array_spec_xls():
      ,['GDP_IQ', 101.3407,  100.6404, 95.0,  102.5]
      ,['GDP_IP', 105.0467,  107.1941, 115.0, 113.0] ]
      , dtype=object)              
-    ar = get_resulting_workbook_array(xl_file)
+    ar = get_resulting_workbook_array(xl_file, slim = True)
     assert np.array_equal(ar, ar0) 
     
 # also need test for this:

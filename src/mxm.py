@@ -1,7 +1,7 @@
 """Make spreadsheet model in Excel file based on historic data, equations, and control parameters.      
    
 Usage:   
-    mxm.py <xlfile> [--make | --update]
+    mxm.py <xlfile> [--make | --update] [--slim | --fancy]
 """
 
 from docopt import docopt
@@ -21,11 +21,14 @@ if __name__ == "__main__":
     
    file = get_abs_filepath(arg)
    sheet = get_model_sheet(arg)    
-    
-   if arg["--make"]:
-      make_xl_model(file, sheet)
-   elif arg["--update"]:
-      update_xl_model(file, sheet)
+   
+   if arg["--fancy"]:
+       slim = False
    else:
-      make_xl_model(file, sheet)
-      
+       slim = True
+   
+   if arg["--update"]:
+      update_xl_model(file, sheet, slim)
+   elif arg["--make"]:
+      make_xl_model(file, sheet, slim)
+   

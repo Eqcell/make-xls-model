@@ -247,7 +247,7 @@ def make_array_before_equations(df):
 ## Main entry point
 ###########################################################################
                          
-def get_resulting_workbook_array(abs_filepath):
+def get_resulting_workbook_array(abs_filepath, slim = True):
 
     # Require all data is covered by equations + timelines are continious
     validate_input_from_sheets(abs_filepath)
@@ -259,46 +259,57 @@ def get_resulting_workbook_array(abs_filepath):
     df = make_df_before_equations(data_df, controls_df, equations_dict)
     ar, pivot_col = make_array_before_equations(df) 
     
-    # Decorate with extra columns
-    def null(x):    
-       return ""
-       
-    def get_var_desc(varname):
-       if varname in var_desc_dict.keys():
-           return var_desc_dict[varname]
-       else:
-           return ""       
-       
-    ar, pivot_col = insert_column(ar, pivot_col, get_var_desc)
-    ar, pivot_col = insert_column(ar, pivot_col, null)      
-    
-    # Decorate with extra empty rows
-    def insert_row(var_name, start_cell_value):
-        return insert_empty_row_before_variable(ar, var_name, 
-                                                pivot_col, start_cell_value)
+    if not slim:
+        # Decorate with extra columns ---------------------------------------------
+        def null(x):    
+           return ""
+           
+        def get_var_desc(varname):
+           if varname in var_desc_dict.keys():
+               return var_desc_dict[varname]
+           else:
+               return ""       
+           
+        ar, pivot_col = insert_column(ar, pivot_col, get_var_desc)
+        ar, pivot_col = insert_column(ar, pivot_col, null)      
         
-    i = 1     
-    ar = insert_row(var_group['data'][0], str(i) + ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ")
-    if var_group['eq']:
-        i = i + 1
-        ar = insert_row(var_group['eq'][0], str(i) + ". ПЕРЕМЕННЫЕ ИЗ УРАВНЕНИЙ")
-    ar = insert_row(var_group['control'][0], str(i) + ". УПРАВЛЯЮЩИЕ ПАРАМЕТРЫ")
+       
+        
+        # Decorate with extra empty rows
+        def insert_row(var_name, start_cell_value):
+            return insert_empty_row_before_variable(ar, var_name, 
+                                                    pivot_col, start_cell_value)
+        def yield_chapter_numbers():
+            for i in [1,2,3]:
+               yield str(i)        
+        gen = yield_chapter_numbers()
+        ar = insert_row(var_group['data'][0],
+                        next(gen) + ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ")
+        if var_group['eq']:        
+            ar = insert_row(var_group['eq'][0],
+                            next(gen) + ". ПЕРЕМЕННЫЕ ИЗ УРАВНЕНИЙ")
+        ar = insert_row(var_group['control'][0],
+                        next(gen) + ". УПРАВЛЯЮЩИЕ ПАРАМЕТРЫ")
+        # -------------------------------------------------------------------------    
        
     # Fill array with formulas
     # Todo: fillable_var_list is effectively everything that appears on the left side of equations
     #       must compare *equations_dict* and *fillable_var_list* 
-       
     fillable_var_list = var_group['data'] + var_group['eq']
     ar = fill_array_with_excel_formulas(ar, equations_dict, fillable_var_list, pivot_col)
+
     return ar
 
-def update_xl_model(abs_filepath, sheet): 
+def update_xl_model(abs_filepath, sheet, pivot_col = 0): 
     pass
     
-def make_xl_model(abs_filepath, sheet): 
-    ar = get_resulting_workbook_array(abs_filepath)    
+def make_xl_model(abs_filepath, sheet, slim): 
+
+    ar = get_resulting_workbook_array(abs_filepath, slim)    
+
     print("\nResulting Excel sheet as array:")     
     print(ar) 
+    
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
     
 if __name__ == '__main__':
@@ -307,4 +318,4 @@ if __name__ == '__main__':
     for fn in ['spec.xls', 'spec2.xls']:
        abs_filepath = os.path.abspath(fn)
        sheet = 'model'
-       make_xl_model(abs_filepath, sheet)
+       make_xl_model(abs_filepath, sheet, slim = False)
