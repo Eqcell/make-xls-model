@@ -1,12 +1,14 @@
 """Make spreadsheet model in Excel file based on historic data, equations, and control parameters.
-Applies to annual frequency time series.       
+   Applies to forecasts of annual frequency time series.      
    
 Usage:   
     mxm.py -M <xlfile> 
     mxm.py -M <xlfile> [--slim | -s]
     mxm.py -M <xlfile> [--fancy | -f]    
     mxm.py -U <xlfile> [--sheet=<sheet>]
+"""
 
+"""
 Options:
    -M  Reads inputs from 'data', 'controls', 'equations' and 'names' sheets of <xlfile>
        and writes resulting spreadsheet to 'model' sheet in <xlfile>. Overwrites 'model'
@@ -45,10 +47,10 @@ if __name__ == "__main__":
    else:
        slim = True
    
-   if arg["update"] or arg["-U"]:
+   if arg["-U"]:
       # third column pivot is default output of -M --fancy keys
       update_xl_model(file, sheet, pivot_col = 2)
-   elif arg["make"] or arg["-M"]:
+   elif arg["-M"]:
       make_xl_model(file, sheet, slim)
    else:
       raise Exception ("CLI input not specified.")
