@@ -1,12 +1,24 @@
-"""Make spreadsheet model in Excel file based on historic data, equations, and control parameters.      
+"""Make spreadsheet model in Excel file based on historic data, equations, and control parameters.
+Applies to annual frequency time series.       
    
 Usage:   
-    mxm.py make <xlfile> [--slim | -s]
-    mxm.py make <xlfile> [ --fancy | -f]
-    mxm.py -M <xlfile>   [--slim | -s]
-    mxm.py -M <xlfile>   [ --fancy | -f]    
-    mxm.py update <xlfile> [--sheet=<sheet>]
+    mxm.py -M <xlfile> 
+    mxm.py -M <xlfile> [--slim | -s]
+    mxm.py -M <xlfile> [--fancy | -f]    
     mxm.py -U <xlfile> [--sheet=<sheet>]
+
+Options:
+   -M  Reads inputs from 'data', 'controls', 'equations' and 'names' sheets of <xlfile>
+       and writes resulting spreadsheet to 'model' sheet in <xlfile>. Overwrites 'model'
+       sheet without warning.
+       
+       Flags:
+           --slim or -s produce minimum formatting on 'model' sheet (labels and years only).
+             This is default behaviour.
+           --fancy or -f produce extra formatting of 'model' sheet.    
+           
+   -U  Updates Excel formulas on <sheet> only by reading this sheet. Works on output of 
+       'mxm.py -M <xlfile> -f'. Default for <sheet> is 'model'.       
 """
 
 from docopt import docopt
