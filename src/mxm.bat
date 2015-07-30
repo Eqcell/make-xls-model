@@ -1,1 +1,1 @@
-python mxm.py %* 
+python mxm.py %*

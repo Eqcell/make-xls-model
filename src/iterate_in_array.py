@@ -1,9 +1,12 @@
 import numpy as np
 from formula_parser import parse_equation_to_xl_formula
 
+###########################################################################
+## Iteration for --make
+###########################################################################
+
 def yield_cell_coords_for_filling(ar, pivot_labels, pivot_col):
-    """
-    Must yield coordinates of cells to the right of pivot_col, where
+    """Must yield coordinates of cells to the right of pivot_col, where
     pivot_col values is in pivot_labels, and cell value is NaN.
     
     Example:
@@ -38,26 +41,50 @@ def get_variable_rows_as_dict(array, pivot_col = 0):
 #     var_dict['GDP']
 #    1   
 #    """
-    
     variable_to_row_dict = {}        
     for i, label in enumerate(array[:,pivot_col]):
-        variable_to_row_dict[label] = i
-        
+        if not "=" in label and not label.strip().startswith("#"):     
+            variable_to_row_dict[label] = i
     return variable_to_row_dict
 
-def fill_array_with_excel_formulas(ar, equations_dict, pivot_labels, pivot_col = 0):    
-    
-    variables_dict = get_variable_rows_as_dict(ar, pivot_col)
-    
+def fill_array_with_excel_formulas(ar, equations_dict, pivot_col = 0):    
+    pivot_labels = equations_dict.keys()
+    var_dict = get_variable_rows_as_dict(ar, pivot_col)    
     for i, j, var_name in yield_cell_coords_for_filling(ar, pivot_labels, pivot_col):
-
         formula_as_string = equations_dict[var_name]
         time_period = j 
         ar[i, j] = parse_equation_to_xl_formula(formula_as_string, 
-                                                variables_dict, time_period)
-        
+                                                var_dict, time_period)
     return ar
 
+###########################################################################
+## Iteration for --update
+###########################################################################
+
+def columns_list_if_cellvalue_is_one(ar, row):    
+    return [i for i, val in enumerate(ar[row,:]) if val == 1]
+
+def yield_cell_coords_for_filling_based_on_is_forecast(ar, pivot_labels, pivot_col):
+    var_dict = get_variable_rows_as_dict(ar, pivot_col)    
+    for lab in pivot_labels:
+        row = var_dict[lab]
+        for col in columns_list_if_cellvalue_is_one(ar, var_dict['is_forecast']):
+            yield row, col, lab
+
+def fill_array_with_excel_formulas_based_on_is_forecast(ar, equations_dict, pivot_col):
+    pivot_labels = equations_dict.keys()
+    var_dict = get_variable_rows_as_dict(ar, pivot_col)      
+    print(equations_dict)
+    print(var_dict)
+    for i, j, var_name in yield_cell_coords_for_filling_based_on_is_forecast(ar, 
+                                                              pivot_labels, pivot_col): 
+        formula_as_string = equations_dict[var_name]       
+        time_period = j 
+        ar[i, j] = parse_equation_to_xl_formula(formula_as_string, 
+                                                var_dict, time_period)
+    return ar
+
+###########################################################################
 
 if __name__ == "__main__":
     import doctest
