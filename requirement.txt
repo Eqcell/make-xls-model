@@ -1,19 +1,19 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: win-64
-colorama=0.3.3=py34_0
-jdcal=1.0=py34_0
-lxml=3.4.4=py34_0
-numpy=1.9.2=py34_0
-openpyxl=2.0.2=py34_0
-pandas=0.16.2=np19py34_0
-pip=7.1.0=py34_0
-py=1.4.30=py34_0
-pytest=2.7.2=py34_0
-python-dateutil=2.4.2=py34_0
-pytz=2015.4=py34_0
-pywin32=219=py34_0
-setuptools=18.0.1=py34_0
-six=1.9.0=py34_0
-xlrd=0.9.4=py34_0
-xlwings=0.3.6=py34_0
+colorama
+jdcal
+lxml
+numpy
+#openpyxl
+pandas
+pip
+py
+#pytest=2.6.4=py34_0
+python-dateutil
+pytz
+pywin32
+setuptools
+six
+xlrd
+xlwings
