@@ -15,6 +15,10 @@ from import_specification import get_all_input_variables, get_array_and_support_
 ## Export to Excel workbook (using xlwings/pywin32 or openpyxl)
 ###########################################################################
 
+def save_xl_using_xlwings(file):  
+    wb = Workbook(file)
+    wb.save()
+
 def write_array_to_xl_using_xlwings(ar, file, sheet):  
     # Note: if file is opened In Excel, it must be first saved before writing 
     #       new output to it, but it may be left open in Excel application. 
@@ -72,11 +76,17 @@ def make_df_before_equations(data_df, controls_df, equations_dict, var_group):
     Return a dataframe containing data, controls and a placeholder for new 
     varaibales derived in equations.
     """    
+    IS_FORECAST_LABEL = 'is_forecast'
     
+    # assign 'is_forecast' to dataframes
+    data_df[IS_FORECAST_LABEL] = 0 
+    controls_df[IS_FORECAST_LABEL] = 1
+     
     # concat data and control *df*
     df1 = data_df
     df2 = controls_df
     df = pd.concat([df1, df2])    
+    
     
     # *df2* is a placeholder for equation-derived variables 
     df3 = make_empty_df(data_df.index, var_group['eq'])
@@ -84,7 +94,8 @@ def make_df_before_equations(data_df, controls_df, equations_dict, var_group):
     df = pd.merge(df, df3, left_index = True, right_index = True, how = 'left')
     
     # reorganise rows
-    var_list = var_group['data'] +  var_group['eq'] + var_group['control']
+    
+    var_list = var_group['data'] +  var_group['eq'] + var_group['control'] + [IS_FORECAST_LABEL]
     return subset_df(df, var_list)
 
 
@@ -93,19 +104,6 @@ def make_df_before_equations(data_df, controls_df, equations_dict, var_group):
 ###########################################################################
 
 from iterate_in_array import get_variable_rows_as_dict
-
-def insert_empty_row_before_variable(ar, var_name, pivot_col, top_value = ""):
-    variables_dict = get_variable_rows_as_dict(ar, pivot_col)
-    row_position = variables_dict[var_name] 
-    ar = np.insert(ar, row_position, "", axis = 0) 
-    ar[row_position, 0] = top_value     
-    return ar
-
-    
-def insert_column(ar, pivot_col, datagen_func):
-    column_values = [datagen_func(x) for x in ar[:, pivot_col]]
-    ar = np.insert(ar, 0, column_values, axis = 1)
-    return ar, pivot_col + 1     
 
 def make_array_before_equations(df):
     """
@@ -124,10 +122,36 @@ def make_array_before_equations(df):
     ar = np.insert(ar, 0, years, axis = 0)
     
     return ar, pivot_col
+
+###### After equations
+
+def insert_empty_row_before_variable(ar, var_name, pivot_col, start_cell_text = ""):
+    variables_dict = get_variable_rows_as_dict(ar, pivot_col)
+    row_position = variables_dict[var_name] 
+    ar = np.insert(ar, row_position, "", axis = 0) 
+    ar[row_position, 0] = start_cell_text 
+    return ar
+
+def insert_column(ar, pivot_col, datagen_func):
+    column_values = [datagen_func(x) for x in ar[:, pivot_col]]
+    ar = np.insert(ar, 0, column_values, axis = 1)
+    return ar, pivot_col + 1   
+
+def append_row_to_array(ar):
+    row = [["" for x in ar[0,:]]]    
+    return np.append(ar, row, axis = 0)
+    
+def add_equations_to_array (ar, pivot_col, eq_list):    
+    for eq in eq_list:
+        ar = append_row_to_array(ar)
+        ar[-1, pivot_col] = eq
+    return ar
+
     
 ###########################################################################
 ## Main entry point
 ###########################################################################
+
                          
 def get_resulting_workbook_array_for_make(abs_filepath, slim = True):
 
@@ -152,22 +176,27 @@ def get_resulting_workbook_array_for_make(abs_filepath, slim = True):
         ar, pivot_col = insert_column(ar, pivot_col, get_var_desc)
         ar, pivot_col = insert_column(ar, pivot_col, null)              
        
-        # Decorate with extra empty rows
-        def insert_row(var_name, start_cell_value):
-            return insert_empty_row_before_variable(ar, var_name, 
-                                                    pivot_col, start_cell_value)
+        # Decorate with extra empty rows 
+        def insert_row(t, gen):
+            # t is (varname, start_cell_text)
+            return insert_empty_row_before_variable(ar, t[0], 
+                                                    pivot_col, next(gen) + t[1])        
         def yield_chapter_numbers():
             for i in [1,2,3,4]:
-               yield str(i)    
-               
+                 yield str(i)  
+                                                   
         gen = yield_chapter_numbers()
-        ar = insert_row(var_group['data'][0],
-                        next(gen) + ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ")
+        
+        dec_dict = { "data": (var_group['data'][0],    ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ"),
+                     "ctrl": (var_group['control'][0], ". УПРАВЛЯЮЩИЕ ПАРАМЕТРЫ")}                      
+        if var_group['eq']:
+             dec_dict['eq'] = (var_group['eq'][0],      ". ПЕРЕМЕННЫЕ ИЗ УРАВНЕНИЙ")
+                        
+        ar = insert_row(dec_dict['data'], gen)
         if var_group['eq']:        
-            ar = insert_row(var_group['eq'][0],
-                            next(gen) + ". ПЕРЕМЕННЫЕ ИЗ УРАВНЕНИЙ")
-        ar = insert_row(var_group['control'][0],
-                        next(gen) + ". УПРАВЛЯЮЩИЕ ПАРАМЕТРЫ")
+            ar = insert_row(dec_dict['eq'], gen)
+        ar = insert_row(dec_dict['ctrl'], gen)
+                        
         # -------------------------------------------------------------------------    
        
     ar = fill_array_with_excel_formulas(ar, equations_dict, pivot_col)
@@ -176,20 +205,12 @@ def get_resulting_workbook_array_for_make(abs_filepath, slim = True):
         ar = append_row_to_array(ar)
         ar[-1,0] = next(gen) + ". УРАВНЕНИЯ"
         ar = add_equations_to_array (ar, pivot_col, eq_list)
-    return ar
-
-def append_row_to_array(ar):
-    row = [["" for x in ar[0,:]]]    
-    return np.append(ar, row, axis = 0)
-    
-def add_equations_to_array (ar, pivot_col, eq_list):    
-    for eq in eq_list:
-        ar = append_row_to_array(ar)
-        ar[-1, pivot_col] = eq
+        
     return ar
 
 # pivot_col = 2 is standard output of --make --fancy
 def update_xl_model(abs_filepath, sheet, pivot_col = 2): 
+    save_xl_using_xlwings(abs_filepath) 
     ar, equations_dict = get_array_and_support_variables(abs_filepath, sheet, pivot_col)         
     ar = fill_array_with_excel_formulas_based_on_is_forecast(ar, equations_dict, pivot_col)    
     print("\nResulting Excel sheet as array:")     
@@ -209,7 +230,7 @@ if __name__ == '__main__':
 #       sheet = 'model'
 #       make_xl_model(abs_filepath, sheet, slim = False)
     
-    abs_filepath = os.path.abspath('bdrn.xls') 
+    abs_filepath = os.path.abspath('spec.xls') 
     sheet = 'model'
     make_xl_model(abs_filepath, sheet, slim = False)     
     #update_xl_model(abs_filepath, sheet, pivot_col = 2)
