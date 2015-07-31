@@ -12,12 +12,12 @@ Usage:
 Options:
    -M  Reads inputs from 'data', 'controls', 'equations' and 'names' sheets of <xlfile>
        and writes resulting spreadsheet to 'model' sheet in <xlfile>. Overwrites 'model'
-       sheet without warning.
+       sheet in <xlfile>  without warning.
        
        Flags:
            --slim or -s produce minimum formatting on 'model' sheet (labels and years only).
-             This is default behaviour.
            --fancy or -f produce extra formatting of 'model' sheet.    
+           Default behaviour: fancy.
            
    -U  Updates Excel formulas on <sheet> only by reading this sheet. Works on output of 
        'mxm.py -M <xlfile> -f'. Default for <sheet> is 'model'.       
@@ -42,10 +42,10 @@ if __name__ == "__main__":
    sheet = get_model_sheet(arg)    
    
    # default behaviour is slim formatting
-   if arg["--fancy"] or arg["-f"]:
-       slim = False
-   else:
+   if arg["--slim"] or arg["-s"]:
        slim = True
+   else:
+       slim = False
    
    if arg["-U"]:
       # third column pivot is default output of -M --fancy keys
