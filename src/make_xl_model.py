@@ -132,7 +132,7 @@ def make_array_before_equations(df):
 def get_resulting_workbook_array_for_make(abs_filepath, slim = True):
 
     # Get model specification
-    data_df, controls_df, equations_dict, var_group, var_desc_dict = get_all_input_variables(abs_filepath) 
+    data_df, controls_df, equations_dict, var_group, var_desc_dict, eq_list = get_all_input_variables(abs_filepath) 
      
     # Get array before formulas
     df = make_df_before_equations(data_df, controls_df, equations_dict, var_group)
@@ -175,17 +175,17 @@ def get_resulting_workbook_array_for_make(abs_filepath, slim = True):
     if not slim:
         ar = append_row_to_array(ar)
         ar[-1,0] = next(gen) + ". УРАВНЕНИЯ"
-        ar = add_equations_to_array (ar, pivot_col,equations_dict)
+        ar = add_equations_to_array (ar, pivot_col, eq_list)
     return ar
 
 def append_row_to_array(ar):
     row = [["" for x in ar[0,:]]]    
     return np.append(ar, row, axis = 0)
     
-def add_equations_to_array (ar, pivot_col, eq_dict):    
-    for var, eq in eq_dict.items():
-        ar =  append_row_to_array(ar)
-        ar[-1, pivot_col] = var + " = " + eq
+def add_equations_to_array (ar, pivot_col, eq_list):    
+    for eq in eq_list:
+        ar = append_row_to_array(ar)
+        ar[-1, pivot_col] = eq
     return ar
 
 # pivot_col = 2 is standard output of --make --fancy

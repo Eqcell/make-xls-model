@@ -2,7 +2,7 @@
 import re
 import xlrd
 from globals import TIME_INDEX_VARIABLES
-
+from collections import OrderedDict
 
 ###########################################################################
 ## Eqautions list -> equations dictionary
@@ -45,7 +45,8 @@ def parse_single_equation(string):
     return key, formula
     
 def make_eq_dict(list_of_strings):
-    parsed_eq_dict = {}    
+    #parsed_eq_dict = {}    
+    parsed_eq_dict = OrderedDict()
     for eq_string in yield_proper_eq_string(list_of_strings):
         key, formula = parse_single_equation(eq_string)
         #         

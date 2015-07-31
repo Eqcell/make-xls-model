@@ -14,3 +14,8 @@ for x in od.keys():
 no = dict(list_otuples )
 for x in no.keys():
     print (x)
+
+
+z = OrderedDict()
+z["GDP"] = "..."
+print(z)    

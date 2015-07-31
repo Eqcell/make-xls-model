@@ -51,23 +51,24 @@ def get_data_df(file):
 def get_controls_df(file):
     return read_df(file, 'controls') 
 
-def get_equations_dict(file):
+def get_equations(file):
     list_of_strings = read_col(file, 'equations')
     # todo: 
     #     parse_to_formula_dict must:
     #        - control left side of equations
-    return make_eq_dict(list_of_strings)
+    return  list_of_strings, make_eq_dict(list_of_strings)
     
 def get_names_dict(file):
     df = read_sheet(file, 'names', None)
     m = df.as_matrix()
     return {var:desc for var, desc in zip(m[0], m[1])} 
     
-def get_spec_as_dict(file):   
+def get_spec_as_dict(file):
+    eq_list, eq_dict = get_equations(file)
+   
     return   { 'data': get_data_df(file)    
        ,   'controls': get_controls_df(file) 
-       ,  'equations': get_equations_dict(file)
-       ,      'names': get_names_dict(file)
+       ,  'equations': eq_dict
        }
 
 def get_core_spec_as_tuple(file): 
@@ -91,8 +92,9 @@ def get_array_and_support_variables(abs_filepath, sheet, pivot_col):
 def get_input_variables(abs_filepath):
     data_df, controls_df, equations_dict = get_core_spec_as_tuple(abs_filepath) 
     var_groups = get_variable_names_by_group(data_df, controls_df, equations_dict)
+    eq_list, eq_dict = get_equations(abs_filepath)
     var_names_dict = get_names_dict(abs_filepath)
-    return data_df, controls_df, equations_dict, var_groups, var_names_dict
+    return data_df, controls_df, equations_dict, var_groups, var_names_dict, eq_list
   
 ###########################################################################
 ## Grouped variables
@@ -127,7 +129,8 @@ def list_array(a):
 
 def validate_input_from_sheets(abs_filepath):
     # Get model specification 
-    data_df, controls_df, equations_dict, var_group, var_names_dict = get_input_variables(abs_filepath)  
+    data_df, controls_df, equations_dict = get_core_spec_as_tuple(abs_filepath) 
+    var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
     # Invoke validations 
     validate_continious_year(data_df, controls_df)
     validate_coverage_by_equations(var_group, equations_dict)
