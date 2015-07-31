@@ -2,10 +2,10 @@
    Applies to forecasts of annual frequency time series.      
    
 Usage:   
-    mxm.py -M <xlfile> 
-    mxm.py -M <xlfile> [--slim | -s]
-    mxm.py -M <xlfile> [--fancy | -f]    
-    mxm.py -U <xlfile> [--sheet=<sheet>]
+    mxm.py <xlfile> -M 
+    mxm.py <xlfile> -M [--slim | -s]
+    mxm.py <xlfile> -M [--fancy | -f]    
+    mxm.py <xlfile> -U [--sheet=<sheet>]
 """
 
 """
