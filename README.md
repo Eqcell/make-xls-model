@@ -20,8 +20,8 @@ The script does not intend to:
 The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment. Formal requirements.txt is to follow. 
 
 ## Interface
-```python mxm.py <xlfile> [-M | -U]```   
-\-M will overwrite sheet 'model' with a new one derived from sheets 'data', 'controls', 'equations' and 'names'
+```python mxm.py <xlfile> [-M | -U]```     
+\-M will overwrite sheet 'model' with a new one derived from sheets 'data', 'controls', 'equations' and 'names'  
 \-U will only update formulas on sheet 'model'   
 
 ## Trial runs
