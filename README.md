@@ -15,6 +15,11 @@ The script does not intend to:
 - resolve/optimise formulas, including circular references
 - spread Excel model to many sheets
 
+NOTE: parts of the code may be found in my other repos
+- <https://github.com/epogrebnyak/eqcell>
+- <https://github.com/epogrebnyak/roll-forward> (private)
+
+
 ## Requirements
 
 The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment. Formal requirements.txt is to follow. 
