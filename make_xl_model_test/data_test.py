@@ -1,21 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-Test for procedure to create resulting Excel sheet based on data, formulas and control parameters. 
+Creating xls test file for procedure that creates Excel sheet based on data, formulas and control parameters. 
 
-Key elements:
+Inputs:
   отчетные данные (data) - ряды данных с названиями переменных 
-  формулы (formulas) - символьные выражения, которые определяют прогнозные значения следующего периода
+  формулы (formulas) -  выражения, которые определяют прогнозные значения следующего периода
   параметры (controls) - управляющие параметры, которые используются при расчете прогнозных значений c помощью формул, может задаваться как p_*
-  размещение (layout) - расположение рядов данных в итоговом Excel файле  
   
+  not used:
+  размещение (layout) - расположение рядов данных в итоговом лите Excel
+  
+Основная программа должна вызвать процедуру, которая создает лист 'result' по вводным данным, перечисленным выше. 
+В данном файле такая процедура не вызывается, но создается файл, в котором показаны результаты работы процедуры.
+
 Limitations:
-  1. no new variables created in formulas
-  2. not writing variable text descriptions, only variable labels
+  1. new variables cannot be created in formulas (left-hand side of formulas must have existing variable)
+  2. will not writing variable text descriptions to 'result' sheet, only variable labels
 """
 
 import pandas as pd
-dff = pd.DataFrame
-tsf = pd.TimeSeries
+
+#
+# Code has three parts: 
+#     1. Creating and printing variables for 'data', 'formulas', 'controls' and 'result' sheets
+#     2. Creating a test xls file with variables written to these sheets
+#     3. Reading reference file to compare its content to variable values from (1)
+#
+
+
+
+#
+#     1. Creating and printing variables for 'data', 'formulas', 'controls' and 'result' sheets
+#
 
 # --------------------------------------------------------------------
 # Data
@@ -51,7 +67,9 @@ is_forecast = [0 for x in obs_years] + [1 for x in forecast_years]
 data = data.reindex(index = all_years)
 controls = controls.reindex(index = all_years)
 
-
+#
+#     2. Creating a test xls file with variables written to these sheets
+#
 iterator = zip([(t, isf) for t, isf in enumerate(is_forecast)], all_years)
 for t, year in enumerate(all_years):
     if is_forecast[t]:
@@ -59,7 +77,6 @@ for t, year in enumerate(all_years):
         data.x[year] = controls.x_fut[year]
         data.y[year] = data.y[year-1] * controls.y_rog[year]
 
-        
 output_layout = {'sheet': 'result',
                  'upper_left_corner': 'B2',
                  'variable_list': ['x', 'y', 'x_fut', 'y_rog']
@@ -69,12 +86,8 @@ var_list = output_layout['variable_list']
 out = data.join(controls)[var_list]
 print("\nResulting dataframe with values:", out)
 
-
-
-
 def write_sheet(df, sheet_name, writer):
     df.transpose().to_excel(writer, sheet_name)
-
 def write_formulas(formulas_as_list, writer):
     pd.DataFrame(formulas_as_list).to_excel(writer, 'formulas', 
                  index = False)
@@ -91,63 +104,13 @@ write_sheet(controls, 'controls', writer)
 write_formulas(formulas, writer)
 write_sheet(out, 'result', writer)
 writer.save()
+# NOTE: 'testfile.xls' manually renamed 'ref_file.xls'
 
-writer = pd.ExcelWriter('testfile.xls')
-
-
-
-# read from file 
+#
+#     3. Reading reference file to compare its content to variable values from (1)
+#
 REF_FILE = "ref_file.xls"
 assert read_df(REF_FILE, 'data').equals(data)
 assert read_df(REF_FILE, 'controls').equals(controls)
 assert read_df(REF_FILE, 'result').equals(out)
 assert read_formulas(REF_FILE) == formulas
-
-
-#import xlrd
-#book = xlrd.open_workbook(REF_FILE)
-#sh = book.sheet_by_name("result")
-#print ("Row 1:", sh.row(1))
-#for rx in range(sh.nrows):
-#    print (sh.row(rx))
-    # Refer to docs for more details.
-    # Feedback on API is welcomed.
-
-
-
-
-
-from openpyxl import load_workbook
-wb = load_workbook(filename='ref_file.xlsx')
-ws = wb['result'] 
-
-# Start from the first cell. Rows and columns are zero indexed.
-rn = 0
-for row in ws.rows:
-    cn = 0 
-    for cell in row:
-        print(rn, cn, cell.value)
-        cn += 1
-    rn +=1
-
-# Start from the first cell. Rows and columns are zero indexed.
-def _iter_rows(file, sheet): 
-    for row in load_workbook(filename=file)[sheet].rows:
-        yield ([cell.value for cell in row])
-
-
-z = pd.DataFrame([x for x in _iter_rows('ref_file.xlsx', 'result')])
-df = z.iloc[1:,1:]
-df.index = z.iloc[1:,0]
-df.columns = z.iloc[0,1:]
-df.to_excel("df.xlsx")
-
-
-
-"""
-write fixtures to xls file on different sheets: data, controls, formulas
-write 'out' to same file in 'upper_left_corner' location
-change formulas, save as reference file - ref.xlsx
-read formulas 
-"""
-
