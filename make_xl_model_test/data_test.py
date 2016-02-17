@@ -114,3 +114,20 @@ assert read_df(REF_FILE, 'data').equals(data)
 assert read_df(REF_FILE, 'controls').equals(controls)
 assert read_df(REF_FILE, 'result').equals(out)
 assert read_formulas(REF_FILE) == formulas
+
+# TODO:
+# - в папке src наладить запуск заполнения формул для 
+# - наладить запуск python mxm.py ref_file.xls
+# - предложить формальные тесты работы make-xls-model/src/make_xl_model.py
+# - после утверждения реализовать тесты, желательно в py.test / unittest
+
+# что не пока нравится:
+# структура папки src
+# в коде make_xl_model.py немного перемешаны уровни абстракции
+# зависимость от xlwings
+# короткий, но уже сложный интерфейс командной строки
+# недостаточно примеров использования
+
+
+
+
