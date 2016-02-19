@@ -10,10 +10,13 @@ By saying 'model' or 'forecast' I mean a simple structure where there are some h
 
 In a minamal example you can have GDP forecast value to be a function of deflator (Ip) and real growth rate (Iq). An Excel sheet will look like below:  
 
---|-----|-------|-----
-1 | GDP | 23500 | 25415
-2 | Iq  |       |  1,05
-3 | Ip  |       |  1,03
+
+
+|   | a   | b     | c     |
+|---|-----|-------|-------|
+| 1 | GDP | 23500 | 25415 |
+| 2 | Iq  |       | 1,05  |
+| 3 | Ip  |       | 1,03  |
 
 
 
