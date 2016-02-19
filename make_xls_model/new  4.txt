@@ -1,5 +1,0 @@
-- add 'is_forecast' to data and controls (test fail now)
-- add 'is_forecast' to top row
-- must require is_forecast in ar
-- different iterations - unify?
-
