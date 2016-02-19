@@ -1,4 +1,40 @@
-Make an Excel spreadsheet model based on historic data, equations and control parameters.
+# Main idea
+
+Based on my expereice in economic spreadsheet modelling Excel files often become a mess: 
+- you do not see the whole picture what equations were used
+- cannot guarantee it is the same equation across all cells in row/column 
+- cannot replicate or amend many formulas Excel file fast
+- your control parameters may be hidden somewhere and it is unclear what really governs your forecast.   
+
+By saying 'model' or 'forecast' I mean a simple structure where there are some historic values for time series, some known assigned future values for control parameters and equations that tell you how controls affest the rest of the variables. 
+
+In a minamal example you can have GDP forecast value to be a function of deflator (Ip) and real growth rate (Iq). An Excel sheet will look like below:  
+
+  | A   |	B     |	C
+--|-----|-------|-----
+1 |	GDP	| 23500	| 25415
+2	| Iq	|       |	1,05
+3	| Ip	|       |	1,03
+
+
+
+```
+     2010   2011  
+GDP   500   
+Ip          1.05
+Iq          
+
+
+```
+
+So I wanted a tool  
+
+# Scope 
+Core functionality (engine): autogenerate formulas in Excel cells based on variable names and list of equations. 
+Final use (application): make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters.
+
+Scope:
+
 
 Features:
 - historic data, equations and control parameters are listed on individual sheets of input Excel file (by default - 'data', 'equations' and 'controls')
@@ -22,7 +58,9 @@ NOTE: parts of the code may be found in my other repos
 
 ## Requirements
 
-The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment. Formal requirements.txt is to follow. 
+The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5.
+
+Formal requirements.txt is to follow. 
 
 ## Interface
 ```python mxm.py <xlfile> [-M | -U]```     
