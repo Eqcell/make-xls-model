@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test suite for make_xls_model"""
 
 import numpy as np

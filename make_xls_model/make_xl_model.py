@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import pandas as pd
 import numpy as np
@@ -11,7 +10,7 @@ from openpyxl import load_workbook
 from iterate_in_array import fill_array_with_excel_formulas
 from iterate_in_array import fill_array_with_excel_formulas_based_on_is_forecast   
 
-from import_specification import get_all_input_variables, get_array_and_support_variables 
+from import_specification import get_all_input_variables, get_array_and_support_variables
 
                          
 ###########################################################################

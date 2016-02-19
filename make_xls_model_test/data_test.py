@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 """
 Creating xls test file for procedure that creates Excel sheet based on data, formulas and control parameters. 
 
