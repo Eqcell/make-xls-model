@@ -17,3 +17,5 @@ setuptools
 six
 xlrd
 xlwings
+openpyxl
+pytest
