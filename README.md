@@ -1,13 +1,8 @@
-# Scope of work
-
-0. Autogenerate formulas in Excel cells based on variable names and list of equations (core functionality/engine)
-1. Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters (Final use / application) 
-
 # Main idea explained
 
 There is a common type of 'spreadsheet models' in Excel with relatively simple logic structure:
-- some observed historic values are available for time series; 
-- forecast is made by assigning future values to control parameters (growth rates, elasticities, ratio, etc);
+- there is some observed historic data for time series; 
+- forecast is made by assigning future values to control parameters (growth rates, elasticities, ratios, etc);
 - equations link control parameters to the rest of the variables. 
 
 Beyond certain threshold these spreadsheet models in Excel often become a mess: 
@@ -84,6 +79,12 @@ or
 Parts of the code may be found in my other repos
 - <https://github.com/epogrebnyak/eqcell>
 - <https://github.com/epogrebnyak/roll-forward> (private)
+
+# Scope of work
+
+Autogenerate formulas in Excel cells based on variable names and list of equations (core functionality/engine)
+
+Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters (final use / application) 
 
 ## Requirements
 
