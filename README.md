@@ -1,21 +1,28 @@
 # Scope of work
 
-Core functionality (engine): autogenerate formulas in Excel cells based on variable names and list of equations. 
-Final use (application): make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters.
+**Core functionality (engine)**: autogenerate formulas in Excel cells based on variable names and list of equations. 
+
+**Final use (application)**: make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters.
 
 # Main idea
 
-Spreadsheet models in Excel often become a mess: 
-- the whole picture what equations cannot be seen easily
+There is a common type of 'spreadsheet models' in Excel with relatively simple logic structure:
+- some observed historic values are available for time series; 
+- forecast is made by assigning future values to control parameters (growth rates, elasticities, ration, etc);
+- equations link control parameters to the rest of the variables. 
+
+Beyond certain threshold these spreadsheet models in Excel often become a mess: 
+- the whole picture of equations cannot be seen easily
 - cannot guarantee it is the same equation across all cells in row/column 
 - cannot replicate or amend many formulas in Excel file fast
-- control parameters may be hidden somewhere and it is unclear what really governs your forecast.   
+- control parameters may be hidden somewhere and it is unclear what really governs your forecast.
 
-By 'spreadsheet models' I mean a simple structure with some historic values for time series, some assigned future values for control parameters and equations that tell you how control parameters affect the rest of the variables. 
+This problem grows bigger with your file size and model complexity.  My intent is to have a tool where I can separate historic data, control parameter values and a list of equation and be able to generate an Excel spreadsheet with proper formulas is cells. IT shoudl be the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file my collegues can also work with, all the magic is on my side. 
+
 
 ## Minimal example
 
-GDP forecast value is a function of prvious yeat value, deflator (Ip) and real growth rate (Iq):
+GDP forecast value is a function of previous yeat value, deflator (Ip) and real growth rate (Iq):
 
 |   | A   | B     | C     |
 |---|-----|-------|-------|
@@ -79,7 +86,7 @@ or
 
 #Other repos
 
-parts of the code may be found in my other repos
+Parts of the code may be found in my other repos
 - <https://github.com/epogrebnyak/eqcell>
 - <https://github.com/epogrebnyak/roll-forward> (private)
 
