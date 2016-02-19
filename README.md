@@ -1,14 +1,13 @@
 # Scope of work
 
-**Core functionality (engine)**: autogenerate formulas in Excel cells based on variable names and list of equations. 
+0. Autogenerate formulas in Excel cells based on variable names and list of equations (core functionality/engine)
+1. Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters (Final use / application) 
 
-**Final use (application)**: make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters.
-
-# Main idea
+# Main idea explained
 
 There is a common type of 'spreadsheet models' in Excel with relatively simple logic structure:
 - some observed historic values are available for time series; 
-- forecast is made by assigning future values to control parameters (growth rates, elasticities, ration, etc);
+- forecast is made by assigning future values to control parameters (growth rates, elasticities, ratio, etc);
 - equations link control parameters to the rest of the variables. 
 
 Beyond certain threshold these spreadsheet models in Excel often become a mess: 
@@ -17,8 +16,9 @@ Beyond certain threshold these spreadsheet models in Excel often become a mess:
 - cannot replicate or amend many formulas in Excel file fast
 - control parameters may be hidden somewhere and it is unclear what really governs your forecast.
 
-This problem grows bigger with your file size and model complexity.  My intent is to have a tool where I can separate historic data, control parameter values and a list of equation and be able to generate an Excel spreadsheet with proper formulas is cells. IT shoudl be the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file my collegues can also work with, all the magic is on my side. 
+This problem grows bigger with your file size and model complexity. However we still use Excel because it has a great user interface, people can try own changes quickly and your boss also wants an Excel file in e-mail.  
 
+My intent is to have a tool where I can separate historic data, control parameter values and a list of equation and be able to generate an Excel spreadsheet with all the proper formulas in cells. It should pay back when maintaining a file with about 20-50 or more equations. The resulting file should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file that my collegues can also work with, all the bright magic is on my side and in this repository. 
 
 ## Minimal example
 
@@ -57,18 +57,13 @@ The script does not intend to:
 - resolve/optimise formulas, including circular references
 - spread Excel model to many sheets
 
-## Requirements
-
-The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5.
-
-Formal requirements.txt is to follow. 
-
 ## Interface
-```python mxm.py <xlfile> [-M | -U]```     
-\-M will overwrite sheet 'model' with a new sheet derived from sheets 'data', 'controls', 'equations' and 'names'  
-\-U will only update formulas on sheet 'model'   
+```python mxm.py <xlfile> [-M | -U]```    
 
-## Trial runs
+- ```-M``` will overwrite sheet 'model' with a new sheet derived from sheets 'data', 'controls', 'equations' and 'names'  
+- ```-U``` will only update formulas on sheet 'model'   
+
+## Examples (todo: update text)
 There are several files with simple models included (eg spec.xls and spec2.xls). One can see the results of creating or updating a model by running the following:
 ```
 python mxm.py spec.xls -M
@@ -90,3 +85,8 @@ Parts of the code may be found in my other repos
 - <https://github.com/epogrebnyak/eqcell>
 - <https://github.com/epogrebnyak/roll-forward> (private)
 
+## Requirements
+
+The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5.
+
+Formal requirements.txt is to follow. 
