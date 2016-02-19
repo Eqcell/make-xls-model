@@ -37,7 +37,7 @@ In C1 we have a formula ```=B1*C2*C3```. What I want to have is be able to gener
 | 1 | GDP | 23500 |       |
 | 2 | Iq  |       | 1,05  |
 | 3 | Ip  |       | 1,03  |
-| 4 | GDP = GDP[t]*Iq*It  |       | 1,03  |
+| 4 | GDP = GDP[t]\*Iq\*It  |       |  |
 
 #File specification and script behaviour
 
