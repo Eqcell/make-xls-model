@@ -4,31 +4,38 @@ import numpy as np
 import pandas as pd
 import os
 
-xl_file = os.path.abspath("spec.xls") 
+xl_file = os.path.abspath("../examples/spec.xls")
 
 ###########################################################################
 ## Data input
 ###########################################################################
 
+
 def test_data_import():    
     from import_specification import get_data_df
-    df =  get_data_df(xl_file)           
-    df0 = pd.DataFrame(
-             # Note we use float value.0 for GDP, otherwise df.equals(df0) will fail
-             { "GDP": [66190.0, 71406.0]
-          , "GDP_IQ": [101.3407, 100.6404]       
-          , "GDP_IP": [105.0467, 107.1941]}
-          ,   index = [2013, 2014])[["GDP", "GDP_IQ", "GDP_IP"]] 
+    df = get_data_df(xl_file)
+    df0 = pd.DataFrame({
+            # Note we use float value.0 for GDP, otherwise df.equals(df0) will fail
+            "GDP": [66190.0, 71406.0]
+          , "GDP_IQ": [101.3407, 100.6404]
+          , "GDP_IP": [105.0467, 107.1941]
+        },
+        index=[2013, 2014]
+    )[["GDP", "GDP_IQ", "GDP_IP"]]
     assert df.equals(df0)
 
-def test_controls_import():    
+
+def test_controls_import():
     from import_specification import get_controls_df
-    df =  get_controls_df(xl_file)           
-    df0 = pd.DataFrame(             
-             {"GDP_IQ": [95.0, 102.5]       
-            , "GDP_IP": [115.0, 113.0]}
-            , index = [2015, 2016])[["GDP_IQ", "GDP_IP"]] 
+    df = get_controls_df(xl_file)
+    df0 = pd.DataFrame({
+            "GDP_IQ": [95.0, 102.5]
+          , "GDP_IP": [115.0, 113.0]
+        },
+        index=[2015, 2016]
+    )[["GDP_IQ", "GDP_IP"]]
     assert df.equals(df0)
+
 
 def test_equation_import():     
     from import_specification import get_equations
