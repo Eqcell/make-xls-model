@@ -1,11 +1,11 @@
-'''Module to parse formulas to their respective excel representations'''
+'''Parse formulas in strings to Excel representations'''
 import re
 import xlrd
 from globals import TIME_INDEX_VARIABLES
 from collections import OrderedDict
 
 ###########################################################################
-## Eqautions list -> equations dictionary
+## Equations list -> equations dictionary
 ########################################################################### 
 
 def strip_timeindex(str_):
