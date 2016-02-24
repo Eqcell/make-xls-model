@@ -1,6 +1,6 @@
 # Scope of work
 
-|   |   |
+
 |---|-----|
 | Core functionality (engine) | Autogenerate formulas in Excel cells based on variable names and list of equation |
 | Final use (application) | Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters |
