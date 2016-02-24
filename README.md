@@ -5,7 +5,7 @@
 | Core functionality (engine) | Autogenerate formulas in Excel cells based on variable names and list of equation |
 | Final use (application) | Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters |
 
-# Motivation
+# Problem description
 
 In financial analysis and economic forecasting there is a common type of 'spreadsheet models' in Excel which include the following:
 - there is some observed historic data for time series (e.g. balance sheet items); 
@@ -20,12 +20,24 @@ Large Excel files of this kind often become a mess:
 
 This problem grows bigger with your file size, model complexity and number of people working on it. However, we still use Excel for this because it has a great user interface, people can experiment with their own changes quickly, can share a model as one file with no extra dependencies.  
 
-```make-xls-model``` is a tool where I provide historic data, control parameter values and a list of equations on separate sheets 
-in Excel file and generate resulting spreadsheet model on another sheet in this file. 
+# Solution
+
+```make-xls-model``` is a tool where once can provide historic data, control parameter values and a list of equations on separate sheets in Excel file and get resulting spreadsheet model generate on another sheet in the same file. 
 
 The resulting file should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file with proper formulas in cells.
 
 With spreadsheet models of about 20-50 or more equations I assume there should be a big productivity gain, espacially if model structure is sometimes reviewed. 
+
+In breif, we intend to:
+- separate historic data from model/forecast specification 
+- explictly show all forecast parameters 
+- explicitly show all equations in the model  
+- make a stand-alone Excel fiel with no dependecies or VBA code, just new clean formulas in it.
+
+The script does not intend to:
+- do any forecast calculations outside Excel/OpenOffice
+- resolve/optimise formulas, including circular references
+- spread Excel model to many sheets
 
 ## Simple illustration
 
@@ -46,8 +58,6 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 | 3 | Ip  |       | 1,03  |
 | 4 | GDP = GDP[t-1]\*Iq\*It  |       |  |
 
-
-
 #Excel file and script behaviour
 
 Workflow:
@@ -55,17 +65,6 @@ Workflow:
 - spreadsheet model is placed to 'model' sheet of Excel file
 - 'model' sheet can be generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
 - once 'model' sheet is created one can change data, controls and equation solely on this sheet and refresh formulas in cells with  ```-U``` key
-
-We intend to:
-- separate historic data from model/forecast specification 
-- explictly show all forecast parameters 
-- explicitly show all equations in the model  
-- make a stand-alone Excel fiel with no dependecies or VBA code, just new clean formulas in it.
-
-The script does not intend to:
-- do any forecast calculations outside Excel/OpenOffice
-- resolve/optimise formulas, including circular references
-- spread Excel model to many sheets
 
 ## Interface
 ```python mxm.py <xlfile> [-M | -U]```    
