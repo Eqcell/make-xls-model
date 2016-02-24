@@ -1,4 +1,11 @@
-# Main idea explained
+# Scope of work
+
+|   |   |
+|---|-----|
+| Core functionality (engine) | Autogenerate formulas in Excel cells based on variable names and list of equation |
+| Final use (application) | Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters |
+
+# Motivation
 
 In financial analysis and economic forecasting there is a common type of 'spreadsheet models' in Excel which include the following:
 - there is some observed historic data for time series (e.g. balance sheet items); 
@@ -83,11 +90,7 @@ Parts of the code may be found in my other repos
 - <https://github.com/epogrebnyak/eqcell>
 - <https://github.com/epogrebnyak/roll-forward> (private)
 
-# Scope of work
 
-Autogenerate formulas in Excel cells based on variable names and list of equations (core functionality/engine)
-
-Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters (final use / application) 
 
 ## Requirements
 
