@@ -32,9 +32,13 @@ def read_array(filename, sheet):
     df = read_sheet(filename, sheet, None)    
     return df.fillna("").astype(object).as_matrix().transpose()
 
-def read_sheet(filename, sheet, header):    
-    return pd.read_excel(filename, sheetname=sheet, header = header).transpose()
-    
+def read_sheet(filename, sheet, header):
+    xls = pd.ExcelFile(filename)
+    if sheet not in xls.sheet_names:
+        return None
+    else:
+        return xls.parse(sheetname=sheet, header=header).transpose()
+
 def read_df(filename, sheet):    
     return read_sheet(filename, sheet, 0)
     
@@ -60,8 +64,11 @@ def get_equations(file):
     
 def get_names_dict(file):
     df = read_sheet(file, 'names', None)
-    m = df.as_matrix()
-    return {var:desc for var, desc in zip(m[0], m[1])} 
+    if df is None:
+        return {}
+    else:
+        m = df.as_matrix()
+        return {var:desc for var, desc in zip(m[0], m[1])}
     
 def get_spec_as_dict(file):
     eq_list, eq_dict = get_equations(file)
