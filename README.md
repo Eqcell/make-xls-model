@@ -1,19 +1,19 @@
 # Main idea explained
 
-There is a common type of 'spreadsheet models' in Excel with relatively simple logic structure:
+In financial analysis there is a common type of 'spreadsheet models' in Excel which include the following:
 - there is some observed historic data for time series; 
-- forecast is made by assigning future values to control parameters (growth rates, elasticities, ratios, etc);
-- equations link control parameters to the rest of the variables. 
+- forecast is made by assigning future values to some control parameters (growth rates, elasticities, ratios, etc);
+- there are that equations link control parameters to the rest of the variables. 
 
-Beyond certain threshold these spreadsheet models in Excel often become a mess: 
+Beyond certain size these spreadsheets in Excel often become a mess: 
 - the whole picture of equations cannot be seen easily
 - cannot guarantee it is the same equation across all cells in row/column 
 - cannot replicate or amend many formulas in Excel file fast
 - control parameters may be hidden somewhere and it is unclear what really governs your forecast.
 
-This problem grows bigger with your file size and model complexity. However we still use Excel because it has a great user interface, people can try own changes quickly and your boss also wants an Excel file in e-mail.  
+This problem grows bigger with your file size and model complexity. However we still use Excel because it has a great user interface, people can experiment with their own changes quickly, can share it as one file with no extra dependencies.  
 
-My intent is to have a tool where I can separate historic data, control parameter values and a list of equation and be able to generate an Excel spreadsheet with all the proper formulas in cells. It should pay back when maintaining a file with about 20-50 or more equations. The resulting file should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file that my collegues can also work with, all the bright magic is on my side and in this repository. 
+My intent is to have a tool where I can separate historic data, control parameter values and a list of equation and be able to generate an Excel spreadsheet with all the proper formulas in cells. It should pay back when maintaining a file with about 20-50 or more equations. The resulting file should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file with proper formulas in cells. With such a file my collegues can also work with, all the bright (or dark) magic is on my side and in this repository. 
 
 ## Minimal example
 
@@ -90,4 +90,4 @@ Make clean Excel spreadsheet model with formulas based on historic data, equatio
 
 The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5.
 
-Formal requirements.txt is to follow. 
+Formal requirements.txt is to follow.
