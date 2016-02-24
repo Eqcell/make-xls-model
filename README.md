@@ -13,7 +13,12 @@ Large Excel files of this kind often become a mess:
 
 This problem grows bigger with your file size, model complexity and number of people working on it. However, we are binded to use  Excel because it has a great user interface, people can experiment with their own changes quickly, can share a model as one file with no extra dependencies.  
 
-My intent is to have a tool where I can separate historic data, control parameter values and a list of equation and be able to generate an Excel spreadsheet with all the proper formulas in cells. It should pay back when maintaining a file with about 20-50 or more equations. The resulting file should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file with proper formulas in cells. With such file my collegues can also easily work with, and all the bright (or dark) magic is on my side and in this repository. 
+```make-xls-model``` is a tool where I provide historic data, control parameter values and a list of equations on separate sheets 
+in Excel file and generate resulting spreadsheet model on another sheet in this file. 
+
+The resulting file should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file with proper formulas in cells.
+
+With spreadsheet models of about 20-50 or more equations I assume there should be a big productivity gain, espacially if model structure is sometimes reviewed. 
 
 ## Minimal example
 
