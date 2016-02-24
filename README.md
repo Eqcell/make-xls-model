@@ -77,3 +77,23 @@ Parts of the code may be found in my other repos
 The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5. Everything runs only on Windows. 
 
 Formal requirements.txt is to follow.
+
+## Possible problems and workarounds
+Using PyCharm one may encounter this error when running `mxm.py`
+
+    ...
+    from . import _xlwindows as xlplatform
+    ...
+    import win32api
+    ImportError: DLL load failed: ....
+
+To cope with it one should add paths like these to the PATH environmental variable
+
+    c:\Users\user\Miniconda2\envs\xls3
+    c:\Users\user\Miniconda2\envs\xls3\DLLs
+    c:\Users\user\Miniconda2\envs\xls3\Scripts
+
+and run PyCharm from command line after the right Anaconda environment is activeted. Like this
+
+    activate xls3
+    "c:\Program Files (x86)\JetBrains\PyCharm 5.0.4\bin\pycharm.exe"
