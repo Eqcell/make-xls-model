@@ -1,3 +1,5 @@
+## Introduction
+
 Excel files often [get messy](problem.md). ```make-xls-model``` is a tool to create a spreadsheet model based on provided historic data, equations and control parameters. The resulting sheet contains a model with proper formulas in cells and no other dependencies.
 
 In brief, we intend to:
@@ -31,7 +33,8 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 | 3 | Ip  |       | 1,03  |
 | 4 | GDP = GDP[t-1]\*Iq\*It  |       |  |
 
-##Workflow:
+##Workflow
+
 - historic data, equations and control parameters are listed on individual sheets of Excel file (by default - 'data', 'equations' and 'controls')
 - spreadsheet model will be placed to 'model' sheet of Excel file
 - 'model' sheet is be generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
