@@ -1,6 +1,6 @@
 # Scope of work
 
-
+|  | Description |
 |---|-----|
 | Core functionality (engine) | Autogenerate formulas in Excel cells based on variable names and list of equation |
 | Final use (application) | Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters |
@@ -18,7 +18,7 @@ Large Excel files of this kind often become a mess:
 - cannot replicate or amend many formulas in Excel file fast
 - control parameters may be hidden somewhere and it is unclear what really governs your forecast.
 
-This problem grows bigger with your file size, model complexity and number of people working on it. However, we are binded to use  Excel because it has a great user interface, people can experiment with their own changes quickly, can share a model as one file with no extra dependencies.  
+This problem grows bigger with your file size, model complexity and number of people working on it. However, we still use Excel for this because it has a great user interface, people can experiment with their own changes quickly, can share a model as one file with no extra dependencies.  
 
 ```make-xls-model``` is a tool where I provide historic data, control parameter values and a list of equations on separate sheets 
 in Excel file and generate resulting spreadsheet model on another sheet in this file. 
