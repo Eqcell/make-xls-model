@@ -1,38 +1,13 @@
-# Scope of work
+Excel files often [get messy](problem.md). 
 
-|  | Description |
-|---|-----|
-| Core functionality (engine) | Autogenerate formulas in Excel cells based on variable names and list of equation |
-| Final use (application) | Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters |
-
-# Problem description
-
-In financial analysis and economic forecasting there is a common type of 'spreadsheet models' in Excel which include the following:
-- there is some observed historic data for time series (e.g. balance sheet items); 
-- forecast is made by assigning future values to some control parameters (growth rates, elasticities, ratios, etc);
-- there are that equations link control parameters to the rest of the variables. 
-
-Large Excel files of this kind often become a mess: 
-- the whole picture of equations cannot be seen easily
-- cannot guarantee it is the same equation across all cells in row/column 
-- cannot replicate or amend many formulas in Excel file fast
-- control parameters may be hidden somewhere and it is unclear what really governs your forecast.
-
-This problem grows bigger with your file size, model complexity and number of people working on it. However, we still use Excel for this because it has a great user interface, people can experiment with their own changes quickly, can share a model as one file with no extra dependencies.  
-
-# Solution
-
-```make-xls-model``` is a tool where once can provide historic data, control parameter values and a list of equations on separate sheets in Excel file and get resulting spreadsheet model generate on another sheet in the same file. 
-
-The resulting file should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file with proper formulas in cells.
-
-With spreadsheet models of about 20-50 or more equations I assume there should be a big productivity gain, espacially if model structure is sometimes reviewed. 
+```make-xls-model``` is a tool to a spreadsheet model based on provided 
+ historic data, equations and control parameters. The resulting sheet in the same file will contain a sheet containing a model with proper formulas in cells and no other dependencies.
 
 In breif, we intend to:
 - separate historic data from model/forecast specification 
 - explictly show all forecast parameters 
 - explicitly show all equations in the model  
-- make a stand-alone Excel fiel with no dependecies or VBA code, just new clean formulas in it.
+- make a stand-alone Excel file with no dependencies or VBA code, just new clean formulas in it.
 
 The script does not intend to:
 - do any forecast calculations outside Excel/OpenOffice
@@ -58,9 +33,7 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 | 3 | Ip  |       | 1,03  |
 | 4 | GDP = GDP[t-1]\*Iq\*It  |       |  |
 
-#Excel file and script behaviour
-
-Workflow:
+##Workflow:
 - historic data, equations and control parameters are listed on individual sheets of Excel file (by default - 'data', 'equations' and 'controls')
 - spreadsheet model is placed to 'model' sheet of Excel file
 - 'model' sheet can be generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
@@ -84,7 +57,15 @@ There are several Excel files provided in [examples](examples) folder. To invoke
 - one model sheet in file
 - a variable appears only once on model sheet
 
-#Other repos
+##One-liners
+
+Core functionality (engine):  
+Autogenerate formulas in Excel cells based on variable names and list of 
+
+Final use (application):
+Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters
+
+##Other repos
 
 Parts of the code may be found in my other repos
 - <https://github.com/epogrebnyak/eqcell>
@@ -92,6 +73,6 @@ Parts of the code may be found in my other repos
 
 ## Requirements
 
-The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5.
+The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5. Everything runs only on Windows. 
 
 Formal requirements.txt is to follow.
