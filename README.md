@@ -1,13 +1,14 @@
 Excel files often [get messy](problem.md). 
 
-```make-xls-model``` is a tool to a spreadsheet model based on provided 
- historic data, equations and control parameters. The resulting sheet in the same file will contain a sheet containing a model with proper formulas in cells and no other dependencies.
+```make-xls-model``` is a tool to create a spreadsheet model based on provided historic data, equations and control parameters. 
+The resulting sheet contains a model with proper formulas in cells and no other dependencies.
 
 In breif, we intend to:
 - separate historic data from model/forecast specification 
 - explictly show all forecast parameters 
 - explicitly show all equations in the model  
-- make a stand-alone Excel file with no dependencies or VBA code, just new clean formulas in it.
+- make a stand-alone Excel file with no dependencies or VBA code, just new clean formulas in it
+- try make spreadsheet models replicable 
 
 The script does not intend to:
 - do any forecast calculations outside Excel/OpenOffice
