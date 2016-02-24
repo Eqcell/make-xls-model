@@ -30,7 +30,7 @@ GDP forecast value is a function of previous yeat value, deflator (Ip) and real 
 | 2 | Iq  |       | 1,05  |
 | 3 | Ip  |       | 1,03  |
 
-In C1 we have a formula ```=B1*C2*C3```. What I want to have is be able to generate this formula from a string in cell A4 below.
+In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generate this formula and place in ```C1``` from a string in cell ```A4``` below.
 
 |   | A   | B     | C     |
 |---|-----|-------|-------|
@@ -38,6 +38,8 @@ In C1 we have a formula ```=B1*C2*C3```. What I want to have is be able to gener
 | 2 | Iq  |       | 1,05  |
 | 3 | Ip  |       | 1,03  |
 | 4 | GDP = GDP[t-1]\*Iq\*It  |       |  |
+
+
 
 #File specification and script behaviour
 
