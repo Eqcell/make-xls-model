@@ -1,9 +1,6 @@
-Excel files often [get messy](problem.md). 
+Excel files often [get messy](problem.md). ```make-xls-model``` is a tool to create a spreadsheet model based on provided historic data, equations and control parameters. The resulting sheet contains a model with proper formulas in cells and no other dependencies.
 
-```make-xls-model``` is a tool to create a spreadsheet model based on provided historic data, equations and control parameters. 
-The resulting sheet contains a model with proper formulas in cells and no other dependencies.
-
-In breif, we intend to:
+In brief, we intend to:
 - separate historic data from model/forecast specification 
 - explictly show all forecast parameters 
 - explicitly show all equations in the model  
@@ -36,8 +33,8 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 
 ##Workflow:
 - historic data, equations and control parameters are listed on individual sheets of Excel file (by default - 'data', 'equations' and 'controls')
-- spreadsheet model is placed to 'model' sheet of Excel file
-- 'model' sheet can be generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
+- spreadsheet model will be placed to 'model' sheet of Excel file
+- 'model' sheet is be generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
 - once 'model' sheet is created one can change data, controls and equation solely on this sheet and refresh formulas in cells with  ```-U``` key
 
 ## Interface
