@@ -48,17 +48,18 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 
 
 
-#File specification and script behaviour
+#Excel file and script behaviour
 
-- historic data, equations and control parameters are listed on individual sheets of input Excel file (by default - 'data', 'equations' and 'controls')
-- model is written to 'model' sheet of Excel file 
+Workflow:
+- historic data, equations and control parameters are listed on individual sheets of Excel file (by default - 'data', 'equations' and 'controls')
+- spreadsheet model is placed to 'model' sheet of Excel file
 - 'model' sheet can be generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
-- once 'model' sheet is created one can change data, controls and equation solely in it and refresh formulas in cells (```-U``` key)
+- once 'model' sheet is created one can change data, controls and equation solely on this sheet and refresh formulas in cells with  ```-U``` key
 
-The script intends to:
+We intend to:
 - separate historic data from model/forecast specification 
 - explictly show all forecast parameters 
-- explicitly show equations in the model  
+- explicitly show all equations in the model  
 - make a stand-alone Excel fiel with no dependecies or VBA code, just new clean formulas in it.
 
 The script does not intend to:
@@ -89,8 +90,6 @@ There are several Excel files provided in [examples](examples) folder. To invoke
 Parts of the code may be found in my other repos
 - <https://github.com/epogrebnyak/eqcell>
 - <https://github.com/epogrebnyak/roll-forward> (private)
-
-
 
 ## Requirements
 
