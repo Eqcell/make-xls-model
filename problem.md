@@ -13,7 +13,7 @@ Large Excel files of this kind often become a mess:
 
 This problem grows bigger with your file size, model complexity and number of people working on it. However, we still use Excel for this because it has a great user interface, people can experiment with their own changes quickly, can share a model as one file with no extra dependencies.  
 
----
+#More comments
 
 The resulting file of ```make-xls-model``` should look the same as if I worked in Excel only - no extra dependecies or VBA code, just a regular stand-alone Excel file with proper formulas in cells.
 
