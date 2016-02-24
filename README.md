@@ -58,21 +58,17 @@ The script does not intend to:
 - ```-M``` will overwrite sheet 'model' with a new sheet derived from sheets 'data', 'controls', 'equations' and 'names'  
 - ```-U``` will only update formulas on sheet 'model'   
 
-## Examples (todo: update text)
-There are several files with simple models included (eg spec.xls and spec2.xls). One can see the results of creating or updating a model by running the following:
-```
-python mxm.py spec.xls -M
-python mxm.py spec2.xls -M
-```
-or
-```python make_xl_model.py```
+## Examples 
+
+There are several Excel files provided in [examples](examples) folder. To invoke ```make-xls-model``` you may use [examples.bat](examples/examples.bat). 
 
 ## Assumptions and limitations
 
+- uses ```xlwings``` and runs on Windows only, no linux
 - annual labels only (continious integers)
-- by row only
+- data organised by row only
 - one model sheet in file
-- variable appears only once on model sheet
+- a variable appears only once on model sheet
 
 #Other repos
 
