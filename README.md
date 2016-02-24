@@ -27,7 +27,7 @@ The resulting file should look the same as if I worked in Excel only - no extra 
 
 With spreadsheet models of about 20-50 or more equations I assume there should be a big productivity gain, espacially if model structure is sometimes reviewed. 
 
-## Minimal example
+## Simple illustration
 
 GDP forecast value is a function of previous yeat value, deflator (Ip) and real growth rate (Iq):
 
