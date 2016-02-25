@@ -1,6 +1,6 @@
 ## Introduction
 
-Excel spreadsheets often [get messy](problem.md). Some forecast models we often create in Excel can be defined based on historic data, equations and forecast control parameters (growth rates, elasticities, ratios, etc.). These models can be generated in Excel file using ```make-xls-model```.
+Some forecast models we often create in Excel can be defined based on historic data, equations and forecast control parameters (growth rates, elasticities, ratios, etc.). These models can be generated in Excel file using ```make-xls-model```.
 
 In brief, we intend to:
 - separate historic data from model/forecast specification 
@@ -59,6 +59,8 @@ There are several Excel files provided in [examples](examples) folder, invoked b
 - a variable appears only once on model sheet
 
 ##One-line descriptions
+
+Excel spreadsheets often [get messy](problem.md). 
 
 Core functionality (engine):  
 Autogenerate formulas in Excel cells based on variable names and list of eqation
