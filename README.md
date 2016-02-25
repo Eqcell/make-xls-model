@@ -35,10 +35,19 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 
 ##Interface
 
-```model.py``` is command-line interface to the package. By default it reads inputs from ```data```, ```controls```, ```equations``` and ```names``` sheets of ```<xlfile>``` and writes resulting spreadsheet to ```model``` sheet in ```<xlfile>```. It overwrites ```model``` sheet in ```<xlfile>``` without warning:
+```model.py``` is command-line interface to the package:
 
-```python model.py <xlfile>``` 
-   Flags and options:
+```
+Usage:   
+    model.py <xlfile> 
+    model.py <xlfile> [--from-dataset | -D] [--slim | -s]
+    model.py <xlfile> (--update | -U) [--sheet=<name>]
+```
+
+```model.py <xlfile>``` reads inputs from ```data```, ```controls```, ```equations``` and ```names``` 
+sheets of ```<xlfile>``` and writes resulting spreadsheet to ```model``` sheet in ```<xlfile>```. 
+It overwrites ```model``` sheet in ```<xlfile>``` without warning.
+
    
 |   Option  | Description      |
 |-----|------|
@@ -47,33 +56,13 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 | ```--update``` or ```-U``` |  update Excel formulas on 'model' sheet or other sheet specified in ```[--sheet=<name>]``` |
 
 
-     
+##Excel file
 
-###Excel file
-
-- The program requires inputs from ```equations``` | ```data```   | ```controls``` sheets. 
-- With ```-D``` key the program will attempt to extract data and controls from ```dataset``` sheet.   
+- The program requires inputs from ```equations```,  ```data```, ```controls``` sheets 
+- With ```-D``` key the program will attempt to extract data and controls from ```dataset``` sheet   
 - ```names``` sheet with variable names is optional
-- spreadsheet model will be placed to ```model``` sheet
+- Spreadsheet model will be placed to ```model``` sheet
 
-
-
-|    | ```equations``` | ```data```   | ```controls``` |  ```dataset``` |  ```names``` |
-|:--:|:---------------:|:------------:|:--------------:|:--------------:|:-----:|
-| no keys  |  +              |    +         |    +           |                | optional |
-|```-D```  |  +              |              |                |        +       |  optional |
-
-
-
-
-- 'model' sheet is generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
-- once 'model' sheet is created one can modify it (keeping the format) and refresh formulas in cells with  ```-U``` key
-
-## Interface
-```python mxm.py <xlfile> [-M | -U]```    
-
-- ```-M``` will overwrite sheet 'model' with a new sheet derived from sheets 'data', 'controls', 'equations' and 'names'  
-- ```-U``` will only update formulas on sheet 'model'   
 
 ## Examples 
 
@@ -112,19 +101,25 @@ Formal [requirements.txt](requirements.txt) is to follow.
 ###PyCharm
 Using PyCharm one may encounter this error when running `mxm.py`
 
+```
     ...
     from . import _xlwindows as xlplatform
     ...
     import win32api
     ImportError: DLL load failed: ....
+```
 
 To cope with it one should add paths like these to the PATH environmental variable
 
+```
     c:\Users\user\Miniconda2\envs\xls3
     c:\Users\user\Miniconda2\envs\xls3\DLLs
     c:\Users\user\Miniconda2\envs\xls3\Scripts
+```
 
 and run PyCharm from command line after the right Anaconda environment is activeted. Like this
 
+```
     activate xls3
     "c:\Program Files (x86)\JetBrains\PyCharm 5.0.4\bin\pycharm.exe"
+```
