@@ -1,6 +1,6 @@
 ## Introduction
 
-Some forecast models we often create in Excel can be defined based on historic data, equations and forecast control parameters (growth rates, elasticities, ratios, etc.). These models can be generated in Excel file using ```make-xls-model```.
+Excel spreadsheets often [get messy](problem.md). Some forecast models we often create in Excel can be defined based on historic data, equations and forecast control parameters (growth rates, elasticities, ratios, etc.). These models can be generated in Excel file using ```make-xls-model```.
 
 In brief, we intend to:
 - separate historic data from model/forecast specification 
@@ -10,9 +10,9 @@ In brief, we intend to:
 - try make spreadsheet models replicable, overall.
 
 The script does not intend to:
-- do any forecast calculations outside Excel/OpenOffice
+- do any forecast calculations outside Excel
 - resolve/optimise formulas, including circular references
-- spread Excel model to many sheets
+- spread Excel model to many sheets.
 
 ## Simple illustration
 
@@ -33,10 +33,39 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 | 3 | Ip  |       | 1,03  |
 | 4 | GDP = GDP[t-1]\*Iq\*It  |       |  |
 
-##Workflow
+##Interface
 
-- historic data, equations and control parameters are listed on individual sheets of Excel file (by default - 'data', 'equations' and 'controls')
-- spreadsheet model will be placed to 'model' sheet of Excel file
+```model.py``` is command-line interface to the package. By default it reads inputs from ```data```, ```controls```, ```equations``` and ```names``` sheets of ```<xlfile>``` and writes resulting spreadsheet to ```model``` sheet in ```<xlfile>```. It overwrites ```model``` sheet in ```<xlfile>``` without warning:
+
+```python model.py <xlfile>``` 
+   Flags and options:
+   
+|   Option  | Description      |
+|-----|------|
+|```--from-dataset``` or ``-D`` |  derive 'data' and 'controls' sheets content from 'dataset' sheet |
+|```--slim``` or ```-s```   |  produce no extra formatting on 'model' sheet (labels and years only) |
+| ```--update``` or ```-U``` |  update Excel formulas on 'model' sheet or other sheet specified in ```[--sheet=<name>]``` |
+
+
+     
+
+###Excel file
+
+- The program requires inputs from ```equations``` | ```data```   | ```controls``` sheets. 
+- With ```-D``` key the program will attempt to extract data and controls from ```dataset``` sheet.   
+- ```names``` sheet with variable names is optional
+- spreadsheet model will be placed to ```model``` sheet
+
+
+
+|    | ```equations``` | ```data```   | ```controls``` |  ```dataset``` |  ```names``` |
+|:--:|:---------------:|:------------:|:--------------:|:--------------:|:-----:|
+| no keys  |  +              |    +         |    +           |                | optional |
+|```-D```  |  +              |              |                |        +       |  optional |
+
+
+
+
 - 'model' sheet is generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
 - once 'model' sheet is created one can modify it (keeping the format) and refresh formulas in cells with  ```-U``` key
 
@@ -59,8 +88,6 @@ There are several Excel files provided in [examples](examples) folder, invoked b
 - a variable appears only once on model sheet
 
 ##One-line descriptions
-
-Excel spreadsheets often [get messy](problem.md). 
 
 Core functionality (engine):  
 Autogenerate formulas in Excel cells based on variable names and list of eqation
