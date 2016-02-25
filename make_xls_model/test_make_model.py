@@ -1,10 +1,11 @@
-"""Test suite for make_xls_model"""
+"""Test for make_xls_model"""
 
 import numpy as np
 import pandas as pd
 import os
 
-xl_file = os.path.abspath("../examples/spec.xls")
+xl_file = os.path.abspath(os.path.join("examples","spec.xls"))
+assert os.path.exists(xl_file)
 
 ###########################################################################
 ## Data input
@@ -103,7 +104,7 @@ def test_parse_equation_to_xl_formula():
 ## Final result
 ###########################################################################    
     
-from make_xl_model import  get_resulting_workbook_array_for_make as get_ar      
+from make_xl_model import get_resulting_workbook_array_for_make as get_ar      
 
 def test_resulting_array_spec_xls():
     ar0 = np.array([
@@ -114,5 +115,3 @@ def test_resulting_array_spec_xls():
      ,['is_forecast', 0.0, 0.0, 1.0, 1.0]     ]
      , dtype=object)
     assert np.array_equal(ar0, get_ar(xl_file, slim = True))
-    
-    # TODO: add slim = False
