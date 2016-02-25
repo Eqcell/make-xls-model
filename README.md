@@ -10,9 +10,9 @@ In brief, we intend to:
 - try make spreadsheet models replicable, overall.
 
 The script does not intend to:
-- do any forecast calculations outside Excel/OpenOffice
+- do any forecast calculations outside Excel
 - resolve/optimise formulas, including circular references
-- spread Excel model to many sheets
+- spread Excel model to many sheets.
 
 ## Simple illustration
 
@@ -33,18 +33,36 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 | 3 | Ip  |       | 1,03  |
 | 4 | GDP = GDP[t-1]\*Iq\*It  |       |  |
 
-##Workflow
+##Interface
 
-- historic data, equations and control parameters are listed on individual sheets of Excel file (by default - 'data', 'equations' and 'controls')
-- spreadsheet model will be placed to 'model' sheet of Excel file
-- 'model' sheet is generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
-- once 'model' sheet is created one can modify it (keeping the format) and refresh formulas in cells with  ```-U``` key
+```model.py``` is command-line interface to the package:
 
-## Interface
-```python mxm.py <xlfile> [-M | -U]```    
+```
+Usage:   
+    model.py <xlfile> 
+    model.py <xlfile> [--from-dataset | -D] [--slim | -s]
+    model.py <xlfile> (--update | -U) [--sheet=<name>]
+```
 
-- ```-M``` will overwrite sheet 'model' with a new sheet derived from sheets 'data', 'controls', 'equations' and 'names'  
-- ```-U``` will only update formulas on sheet 'model'   
+```model.py <xlfile>``` reads inputs from ```data```, ```controls```, ```equations``` and ```names``` 
+sheets of ```<xlfile>``` and writes resulting spreadsheet to ```model``` sheet in ```<xlfile>```. 
+It overwrites ```model``` sheet in ```<xlfile>``` without warning.
+
+   
+|   Option  | Description      |
+|-----|------|
+|```--from-dataset``` or ``-D`` |  derive 'data' and 'controls' sheets content from 'dataset' sheet |
+|```--slim``` or ```-s```   |  produce no extra formatting on 'model' sheet (labels and years only) |
+| ```--update``` or ```-U``` |  update Excel formulas on 'model' sheet or other sheet specified in ```[--sheet=<name>]``` |
+
+
+##Excel file
+
+- The program requires inputs from ```equations```,  ```data```, ```controls``` sheets 
+- With ```-D``` key the program will attempt to extract data and controls from ```dataset``` sheet   
+- ```names``` sheet with variable names is optional
+- Spreadsheet model will be placed to ```model``` sheet
+
 
 ## Examples 
 
@@ -83,19 +101,25 @@ Formal [requirements.txt](requirements.txt) is to follow.
 ###PyCharm
 Using PyCharm one may encounter this error when running `mxm.py`
 
+```
     ...
     from . import _xlwindows as xlplatform
     ...
     import win32api
     ImportError: DLL load failed: ....
+```
 
 To cope with it one should add paths like these to the PATH environmental variable
 
+```
     c:\Users\user\Miniconda2\envs\xls3
     c:\Users\user\Miniconda2\envs\xls3\DLLs
     c:\Users\user\Miniconda2\envs\xls3\Scripts
+```
 
 and run PyCharm from command line after the right Anaconda environment is activeted. Like this
 
+```
     activate xls3
     "c:\Program Files (x86)\JetBrains\PyCharm 5.0.4\bin\pycharm.exe"
+```

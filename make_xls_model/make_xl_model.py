@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import pandas as pd
 import numpy as np
 import os
@@ -219,7 +217,7 @@ def update_xl_model(abs_filepath, sheet, pivot_col = 2):
     print(ar)  
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
     
-def make_xl_model(abs_filepath, sheet, slim): 
+def make_xl_model(abs_filepath, sheet, slim, use_dataset): 
     ar = get_resulting_workbook_array_for_make(abs_filepath, slim)    
     print("\nResulting Excel sheet as array:")     
     print(ar)     

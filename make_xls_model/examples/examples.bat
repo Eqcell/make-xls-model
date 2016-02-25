@@ -1,6 +1,6 @@
-python ..\mxm.py bdrn.xls -M
-python ..\mxm.py ref_file.xls -M
-python ..\mxm.py spec.xls -M
-python ..\mxm.py spec2.xls -M
-python ..\mxm.py bank.xls -M
-python ..\mxm.py bank_sector.xls -M
+python ..\model.py bdrn.xls
+python ..\model.py ref_file.xls
+python ..\model.py spec.xls
+python ..\model.py spec2.xls
+python ..\model.py bank.xls
+python ..\model.py bank_sector.xls
