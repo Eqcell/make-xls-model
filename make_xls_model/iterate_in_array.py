@@ -74,8 +74,8 @@ def yield_cell_coords_for_filling_based_on_is_forecast(ar, pivot_labels, pivot_c
 def fill_array_with_excel_formulas_based_on_is_forecast(ar, equations_dict, pivot_col):
     pivot_labels = equations_dict.keys()
     var_dict = get_variable_rows_as_dict(ar, pivot_col)      
-    print(equations_dict)
-    print(var_dict)
+    #print(equations_dict)
+    #print(var_dict)
     for i, j, var_name in yield_cell_coords_for_filling_based_on_is_forecast(ar, 
                                                               pivot_labels, pivot_col): 
         formula_as_string = equations_dict[var_name]       
