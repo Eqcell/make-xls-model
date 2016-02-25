@@ -1,13 +1,13 @@
 ## Introduction
 
-Excel files often [get messy](problem.md). ```make-xls-model``` is a tool to create a spreadsheet model based on provided historic data, equations and control parameters. The resulting sheet contains a model with proper formulas in cells and no other dependencies.
+Excel spreadsheets often [get messy](problem.md). Some forecast models we often create in Excel can be defined based on historic data, equations and forecast control parameters (growth rates, elasticities, ratios, etc.). These models can be generated in Excel file using ```make-xls-model```.
 
 In brief, we intend to:
 - separate historic data from model/forecast specification 
-- explictly show all forecast parameters 
+- explicitly show all forecast parameters 
 - explicitly show all equations in the model  
-- make a stand-alone Excel file with no dependencies or VBA code, just new clean formulas in it
-- try make spreadsheet models replicable 
+- make a stand-alone Excel spreadsheet with no dependencies or VBA code, just new clean formulas in it
+- try make spreadsheet models replicable, overall.
 
 The script does not intend to:
 - do any forecast calculations outside Excel/OpenOffice
@@ -16,7 +16,7 @@ The script does not intend to:
 
 ## Simple illustration
 
-GDP forecast value is a function of previous yeat value, deflator (Ip) and real growth rate (Iq):
+GDP forecast value is a function of previous year value, deflator (Ip) and real growth rate (Iq):
 
 |   | A   | B     | C     |
 |---|-----|-------|-------|
@@ -24,7 +24,7 @@ GDP forecast value is a function of previous yeat value, deflator (Ip) and real 
 | 2 | Iq  |       | 1,05  |
 | 3 | Ip  |       | 1,03  |
 
-In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generate this formula and place in ```C1``` from a string in cell ```A4``` below.
+In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generate this formula and place it in ```C1``` from a string in cell ```A4``` below.
 
 |   | A   | B     | C     |
 |---|-----|-------|-------|
@@ -37,8 +37,8 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 
 - historic data, equations and control parameters are listed on individual sheets of Excel file (by default - 'data', 'equations' and 'controls')
 - spreadsheet model will be placed to 'model' sheet of Excel file
-- 'model' sheet is be generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
-- once 'model' sheet is created one can change data, controls and equation solely on this sheet and refresh formulas in cells with  ```-U``` key
+- 'model' sheet is generated from 'data', 'equations' and 'controls' sheets (```-M``` key)
+- once 'model' sheet is created one can modify it (keeping the format) and refresh formulas in cells with  ```-U``` key
 
 ## Interface
 ```python mxm.py <xlfile> [-M | -U]```    
@@ -48,7 +48,7 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 
 ## Examples 
 
-There are several Excel files provided in [examples](examples) folder. To invoke ```make-xls-model``` you may use [examples.bat](examples/examples.bat). 
+There are several Excel files provided in [examples](examples) folder, invoked by [examples.bat](examples/examples.bat).
 
 ## Assumptions and limitations
 
@@ -58,10 +58,10 @@ There are several Excel files provided in [examples](examples) folder. To invoke
 - one model sheet in file
 - a variable appears only once on model sheet
 
-##One-liners
+##One-line descriptions
 
 Core functionality (engine):  
-Autogenerate formulas in Excel cells based on variable names and list of 
+Autogenerate formulas in Excel cells based on variable names and list of eqation
 
 Final use (application):
 Make clean Excel spreadsheet model with formulas based on historic data, equations and control parameters
@@ -76,9 +76,11 @@ Parts of the code may be found in my other repos
 
 The script is executed in [Anaconda](https://store.continuum.io/cshop/anaconda/) environment, we use Python 3.5. Everything runs only on Windows. 
 
-Formal requirements.txt is to follow.
+Formal [requirements.txt](requirements.txt) is to follow.
 
 ## Possible problems and workarounds
+
+###PyCharm
 Using PyCharm one may encounter this error when running `mxm.py`
 
     ...
