@@ -1,27 +1,27 @@
 """Make spreadsheet model in Excel file based on historic data, equations, and control parameters.
-   Applies to forecasts of annual frequency time series.      
+
+   Reads inputs from 'data', 'controls', 'equations' and 'names' sheets of <xlfile> and writes 
+   resulting spreadsheet to 'model' sheet in <xlfile>. Overwrites 'model' sheet in <xlfile> 
+   without warning.  
+
+   Flags and options:   
    
+       [--from-dataset | -D]        
+
+    --slim or -s produce minimum formatting on 'model' sheet (labels and years only).   
+    -U  Updates Excel formulas on <sheet> only by reading this sheet. Works on output of 
+       'mxm.py -M <xlfile> -f'. Default for <sheet> is 'model'.     
+ 
+    [--sheet=<sheet>] 
+ 
 Usage:   
-    mxm.py <xlfile> -M 
-    mxm.py <xlfile> -M [--slim | -s]
-    mxm.py <xlfile> -M [--fancy | -f]    
-    mxm.py <xlfile> -U [--sheet=<sheet>]
+    model.py <xlfile> 
+    model.py <xlfile> [--from-dataset | -D] [--slim | -s]
+    model.py <xlfile> (--update | -U) [--sheet=<sheet>] 
+ 
+   
 """
 
-"""
-Options:
-   -M  Reads inputs from 'data', 'controls', 'equations' and 'names' sheets of <xlfile>
-       and writes resulting spreadsheet to 'model' sheet in <xlfile>. Overwrites 'model'
-       sheet in <xlfile>  without warning.
-       
-       Flags:
-           --slim or -s produce minimum formatting on 'model' sheet (labels and years only).
-           --fancy or -f produce extra formatting of 'model' sheet.    
-           Default behaviour: fancy.
-           
-   -U  Updates Excel formulas on <sheet> only by reading this sheet. Works on output of 
-       'mxm.py -M <xlfile> -f'. Default for <sheet> is 'model'.       
-"""
 
 from docopt import docopt
 import os
