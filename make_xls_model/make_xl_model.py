@@ -19,12 +19,16 @@ def save_xl_using_xlwings(file):
     wb = Workbook(file)
     wb.save()
 
-def write_array_to_xl_using_xlwings(ar, file, sheet):  
+def write_array_to_xl_using_xlwings(ar, file, sheet):
     # Note: if file is opened In Excel, it must be first saved before writing 
     #       new output to it, but it may be left open in Excel application. 
     wb = Workbook(file)
-    Sheet(sheet).activate()        
-    Range(sheet, 'A1').value = ar.astype(str)    
+    Sheet(sheet).activate()
+
+    def nan_to_empty_str(x):
+        return '' if type(x) == float and np.isnan(x) else x
+
+    Range(sheet, 'A1').value = [[nan_to_empty_str(x) for x in row] for row in ar]
     wb.save()
 
 #--------------------------------------------------------------------------
@@ -220,7 +224,7 @@ def update_xl_model(abs_filepath, sheet, pivot_col = 2):
 def make_xl_model(abs_filepath, sheet, slim, use_dataset): 
     ar = get_resulting_workbook_array_for_make(abs_filepath, slim)    
     print("\nResulting Excel sheet as array:")     
-    print(ar)     
+    print(ar)
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
     
 if __name__ == '__main__':
