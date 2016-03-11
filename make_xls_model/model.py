@@ -6,15 +6,25 @@
        
 Usage:   
     model.py <xlfile> 
-    model.py <xlfile> [--from-dataset | -D] [--slim | -s]
-    model.py <xlfile> (--update | -U) [--sheet=<name>]   
+    model.py <xlfile> (--use-dataset  | -D) [--slim | -s]
+    model.py <xlfile> (--update-model | -U) [--sheet=<name>]   
 """
+
+# suggested change: model.py <xlfile> will update model sheet 
+"""
+Usage:   
+    model.py <xlfile> 
+    model.py <xlfile> (--split-dataset | -D) [--sheet=<name>] 
+    model.py <xlfile> (--make-model    | -M) [--slim | -s]
+    model.py <xlfile> (--update-model  | -U) [--sheet=<name>]   
+"""
+
 
 """
    Flags and options:   
-   --from-dataset or -D  derive 'data' and 'controls' sheets content from 'dataset' sheet
+   --use-dataset or -D  derive 'data', 'controls', 'names' and 'equations' sheets content from 'dataset' sheet
    --slim or -s          produce no extra formatting on 'model' sheet (labels and years only).   
-   --update or -U        update Excel formulas on 'model' sheet or other sheet specified in [--sheet=<name>] 
+   --update-model or -U        update Excel formulas on 'model' sheet or other sheet specified in [--sheet=<name>] 
 """
 
 from docopt import docopt
@@ -46,10 +56,10 @@ if __name__ == "__main__":
        slim = True
        
    # 'dataset' option 
-   if arg["--from-dataset"] or arg["-D"]:
+   if arg["--use-dataset"] or arg["-D"]:
        use_dataset = True
       
-   if arg["-U"] or arg["--update"]:
+   if arg["-U"] or arg["--update-model"]:
       update_xl_model(file, sheet)
    else:
       make_xl_model(file, sheet, slim, use_dataset)
