@@ -137,14 +137,19 @@ def validate_input_from_sheets(abs_filepath):
     
 def validate_continious_year(data_df, controls_df):
     # Data and controls must have continious timeline
-    years1 = data_df.index.tolist() 
-    years2 = controls_df.index.tolist()
-    timeline = years1 + years2
-    ref_timeline = [x for x in range(min(timeline), max(timeline) + 1)]
+    data_years = data_df.index.tolist()
+    controls_years = controls_df.index.tolist()
+    for dy in data_years:
+        if len(controls_years) == 0:
+            break
+        elif controls_years[0] == dy:
+            controls_years.pop(0)
+    timeline = data_years + controls_years
+    ref_timeline = list(range(min(timeline), max(timeline) + 1))
     if not timeline == ref_timeline:
         raise ValueError("Timeline derived from 'data' and 'controls' is not continious." +
-            "\nData timeline: "      + list_array(years1)   +
-            "\nControls timeline: "  + list_array(years2)   +
+            "\nData timeline: "      + list_array(data_years)   +
+            "\nControls timeline: "  + list_array(controls_years)   +
             "\nResulting timeline: " + list_array(timeline) +
             "\nExpected timeline: "  + list_array(ref_timeline)
             )
