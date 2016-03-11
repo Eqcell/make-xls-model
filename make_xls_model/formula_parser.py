@@ -143,7 +143,7 @@ def parse_equation_to_xl_formula(formula_string, variables_dict, time_period):
     formula_string = substitute_time_indices(formula_string, time_period)
     
     # each setment in var_time_segments  is like 'GDP[0]', 'GDP_IQ[10]', etc
-    var_time_segments = re.findall(r'(\w+\[\d+\])', formula_string)
+    var_time_segments = re.findall(r'([\w\.]+\[\d+\])', formula_string)
 
     for segment in var_time_segments:
         #print("Got into loop")
@@ -249,7 +249,7 @@ def extract_var_time(formula_string):
     ('GDP', 1)
     '''
     # Extract group (GDP, 0)
-    a, b = re.search(r'(\w+)\[(\d+)\]', formula_string).groups()
+    a, b = re.search(r'([\w\.]+)\[(\d+)\]', formula_string).groups()
     return a, int(b)
 
 def check_parse_equation_as_formula():
