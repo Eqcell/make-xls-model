@@ -87,9 +87,7 @@ def make_df_before_equations(data_df, controls_df, equations_dict, var_group):
     controls_df[IS_FORECAST_LABEL] = 1
      
     # concat data and control *df*
-    df1 = data_df
-    df2 = controls_df
-    df = pd.concat([df1, df2])    
+    df = data_df.combine_first(controls_df)
     
     
     # *df2* is a placeholder for equation-derived variables 
