@@ -44,7 +44,10 @@ def read_col(filename, sheet):
 ###########################################################################
 ## Import model specification, make it available as dict or tuple 
 ###########################################################################
-   
+
+def get_dataset_df(file):
+    return read_df(file, 'dataset').transpose()
+
 def get_data_df(file):
     return read_df(file, 'data') 
 

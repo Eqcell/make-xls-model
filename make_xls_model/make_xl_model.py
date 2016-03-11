@@ -8,7 +8,7 @@ from openpyxl import load_workbook
 from iterate_in_array import fill_array_with_excel_formulas
 from iterate_in_array import fill_array_with_excel_formulas_based_on_is_forecast   
 
-from import_specification import get_all_input_variables, get_array_and_support_variables
+from import_specification import get_all_input_variables, get_array_and_support_variables, get_dataset_df
 
                          
 ###########################################################################
@@ -149,7 +149,45 @@ def add_equations_to_array (ar, pivot_col, eq_list):
         ar[-1, pivot_col] = eq
     return ar
 
-    
+
+
+
+
+def dataset_to_basic_sheets(abs_filepath):
+    dataset = get_dataset_df(abs_filepath)
+
+    def remove_useless_columns(df):
+        columns_to_remove = [x for x in df.columns if 'Unnamed:' in str(x)]
+        return df.drop(columns_to_remove, 1)
+
+    def remove_rows_with_no_type(df):
+        return df[df.type.notnull()]
+
+    dataset = remove_useless_columns(dataset)
+    dataset = remove_rows_with_no_type(dataset)
+
+    names = dataset[dataset.type.map(lambda x: x in ['data', 'param'])][['var', 'name']]
+    equations = dataset[dataset.type == 'eq'][['name']]
+
+    def get_data_years(df):
+        years = df[dataset.type == 'is_forecast'].iloc[0]
+        return [year for year, is_forecast in years.iteritems() if is_forecast == 0]
+
+    data = dataset[dataset.type == 'data'][['var'] + get_data_years(dataset)]
+    controls = dataset[dataset.type == 'param'].drop(['type', 'name'], 1)
+
+    def to_array_with_years_and_values(df):
+        result = np.concatenate(([np.array(df.columns)], df.as_matrix().astype(object)))
+        result[0][0] = ''
+        return result
+
+    write_array_to_xl_using_xlwings(to_array_with_years_and_values(data), abs_filepath, 'data')
+    write_array_to_xl_using_xlwings(to_array_with_years_and_values(controls), abs_filepath, 'controls')
+    write_array_to_xl_using_xlwings(names.as_matrix(), abs_filepath, 'names')
+    write_array_to_xl_using_xlwings(equations.as_matrix(), abs_filepath, 'equations')
+
+
+
 ###########################################################################
 ## Main entry point
 ###########################################################################
@@ -219,7 +257,9 @@ def update_xl_model(abs_filepath, sheet, pivot_col = 2):
     print(ar)  
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
     
-def make_xl_model(abs_filepath, sheet, slim, use_dataset): 
+def make_xl_model(abs_filepath, sheet, slim, use_dataset):
+    if use_dataset:
+        dataset_to_basic_sheets(abs_filepath)
     ar = get_resulting_workbook_array_for_make(abs_filepath, slim)    
     print("\nResulting Excel sheet as array:")     
     print(ar)
