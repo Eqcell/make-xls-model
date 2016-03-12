@@ -8,7 +8,7 @@ from openpyxl import load_workbook
 from iterate_in_array import fill_array_with_excel_formulas
 from iterate_in_array import fill_array_with_excel_formulas_based_on_is_forecast   
 
-from import_specification import get_all_input_variables, get_array_and_support_variables, get_dataset_df
+from import_specification import get_all_input_variables, get_array_and_support_variables, get_dataset_df, validate_variable_names
 
                          
 ###########################################################################
@@ -150,9 +150,6 @@ def add_equations_to_array (ar, pivot_col, eq_list):
     return ar
 
 
-
-
-
 def dataset_to_basic_sheets(abs_filepath):
     dataset = get_dataset_df(abs_filepath)
 
@@ -167,6 +164,8 @@ def dataset_to_basic_sheets(abs_filepath):
     dataset = remove_rows_with_no_type(dataset)
 
     names = dataset[dataset.type.map(lambda x: x in ['data', 'param'])][['var', 'name']]
+    validate_variable_names(names['var'].tolist())
+
     equations = dataset[dataset.type == 'eq'][['name']]
 
     def get_data_years(df):
