@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import os
 
+import pytest
+
 continuous_years_on_data_and_controls_xl_file = os.path.abspath(os.path.join("examples", "spec.xls"))
 assert os.path.exists(continuous_years_on_data_and_controls_xl_file)
 
@@ -104,8 +106,19 @@ def test_parse_equation_to_xl_formula():
 
 
 ###########################################################################
+## Misc
+###########################################################################
+def test_variable_names_validation():
+    from import_specification import validate_variable_names
+    validate_variable_names([])
+    validate_variable_names(['no_dots1', 'no_dots2'])
+    with pytest.raises(ValueError) as e:
+        validate_variable_names(['no_dots', 'with.dot'])
+
+
+###########################################################################
 ## Final result
-###########################################################################    
+###########################################################################
     
 from make_xl_model import get_resulting_workbook_array_for_make as get_ar      
 

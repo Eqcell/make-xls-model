@@ -130,11 +130,18 @@ def get_variable_names_by_group(data_df, controls_df, equations_dict):
 def list_array(a):
     return  " ".join(str(x) for x in a)
 
+def validate_variable_names(variables):
+    for var in variables:
+        if '.' in var:
+            raise ValueError('''Variable name must not contain '.'
+Wrong variable: {}'''.format(var))
+
 def validate_input_from_sheets(abs_filepath):
     # Get model specification 
     data_df, controls_df, equations_dict = get_core_spec_as_tuple(abs_filepath) 
     var_group = get_variable_names_by_group(data_df, controls_df, equations_dict)
-    # Invoke validations 
+    # Invoke validations
+    map(validate_variable_names, var_group.values())
     validate_continious_year(data_df, controls_df)
     validate_coverage_by_equations(var_group, equations_dict)
     
