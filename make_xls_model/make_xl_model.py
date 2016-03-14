@@ -10,7 +10,8 @@ from iterate_in_array import fill_array_with_excel_formulas_based_on_is_forecast
 
 from import_specification import get_all_input_variables, get_array_and_support_variables, get_dataset_df, validate_variable_names
 
-                         
+
+
 ###########################################################################
 ## Export to Excel workbook (using xlwings/pywin32 or openpyxl)
 ###########################################################################
@@ -255,23 +256,108 @@ def update_xl_model(abs_filepath, sheet, pivot_col = 2):
     print("\nResulting Excel sheet as array:")     
     print(ar)  
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
+
+def derive_sheets_from_dataset(abs_filepath):
+    dataset_to_basic_sheets(abs_filepath)
     
-def make_xl_model(abs_filepath, sheet, slim, use_dataset):
-    if use_dataset:
-        dataset_to_basic_sheets(abs_filepath)
-    ar = get_resulting_workbook_array_for_make(abs_filepath, slim)    
+def make_xl_model(abs_filepath, sheet, slim):
+    ar = get_resulting_workbook_array_for_make(abs_filepath, slim)
     print("\nResulting Excel sheet as array:")     
     print(ar)
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
-    
-if __name__ == '__main__':
-    
-#    for fn in ['spec.xls', 'spec2.xls']:
-#       abs_filepath = os.path.abspath(fn)
-#       sheet = 'model'
-#       make_xl_model(abs_filepath, sheet, slim = False)
-    
-    abs_filepath = os.path.abspath('spec.xls') 
-    sheet = 'model'
-    make_xl_model(abs_filepath, sheet, slim = False)     
-    #update_xl_model(abs_filepath, sheet, pivot_col = 2)
+
+
+class MegaClassToNameSomehow:
+
+    def __init__(self, excel_file, sheet):
+        self.file = excel_file
+        self.sheet = sheet
+
+        self.model_df = None
+        self.model_array = None
+        self.pivot_col = None
+
+        def yield_chapter_numbers():
+            for i in [1,2,3,4]:
+                 yield str(i)
+        self.gen = yield_chapter_numbers()
+
+        if not os.path.isfile(self.file):
+            raise Exception("ERROR: file {} doesn't exist".format(self.file))
+
+    def build_slim(self):
+        self._load_main_sheets_to_array()
+        self._fill_array_with_excel_formulas()
+
+    def build_fancy(self):
+        self._load_main_sheets_to_array()
+        self._add_descriptions_for_all_except_equations()
+        self._fill_array_with_excel_formulas()
+        self._add_description_for_equations()
+
+    def update_model(self):
+        pass
+
+    def derive_from_dataset(self):
+        dataset_to_basic_sheets(self.file)
+
+    def print_model_sheet(self):
+        print("\nResulting Excel sheet as array:")
+        print(self.model_array)
+
+    def save(self):
+        write_array_to_xl_using_xlwings(self.model_df, self.file, self.sheet)
+
+    def _load_main_sheets_to_array(self):
+        self._read_main_sheets()
+        self._make_dataframe()
+        self._make_array_with_data_and_controls()
+
+    def _read_main_sheets(self):
+        self.data_df, self.controls_df, self.equations_dict, self.var_group, self.var_desc_dict, self.eq_list =\
+            get_all_input_variables(self.file)
+
+    def _make_dataframe(self):
+        self.model_df = make_df_before_equations(self.data_df, self.controls_df, self.equations_dict, self.var_group)
+
+    def _make_array_with_data_and_controls(self):
+        self.model_array, self.pivot_col = make_array_before_equations(self.model_df)
+
+    def _add_descriptions_for_all_except_equations(self):
+        def null(x):
+           return ""
+
+        def get_var_desc(varname):
+           if varname in self.var_desc_dict.keys():
+               return self.var_desc_dict[varname]
+           else:
+               return ""
+
+        ar, pivot_col = insert_column(self.model_array, self.pivot_col, get_var_desc)
+        ar, pivot_col = insert_column(self.model_array, self.pivot_col, null)
+
+        # Decorate with extra empty rows
+        def insert_row(t, gen):
+            # t is (varname, start_cell_text)
+            return insert_empty_row_before_variable(ar, t[0],
+                                                    pivot_col, next(gen) + t[1])
+
+        dec_dict = {
+            "data": (self.var_group['data'][0],    ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ"),
+            "ctrl": (self.var_group['control'][0], ". УПРАВЛЯЮЩИЕ ПАРАМЕТРЫ")
+        }
+        if self.var_group['eq']:
+             dec_dict['eq'] = (self.var_group['eq'][0],      ". ПЕРЕМЕННЫЕ ИЗ УРАВНЕНИЙ")
+
+        self.model_array = insert_row(dec_dict['data'], self.gen)
+        if self.var_group['eq']:
+            self.model_array = insert_row(dec_dict['eq'], self.gen)
+        self.model_array = insert_row(dec_dict['ctrl'], self.gen)
+
+    def _add_description_for_equations(self):
+        self.model_array = append_row_to_array(self.model_array)
+        self.model_array[-1,0] = next(self.gen) + ". УРАВНЕНИЯ"
+        self.model_array = add_equations_to_array(self.model_array, self.pivot_col, self.eq_list)
+
+    def _fill_array_with_excel_formulas(self):
+        self.model_array = fill_array_with_excel_formulas(self.model_array, self.equations_dict, self.pivot_col)

@@ -27,9 +27,12 @@ Usage:
    --update-model or -U        update Excel formulas on 'model' sheet or other sheet specified in [--sheet=<name>] 
 """
 
+
+
+
 from docopt import docopt
 import os
-from make_xl_model import make_xl_model, update_xl_model
+from make_xl_model import make_xl_model, update_xl_model, derive_sheets_from_dataset, MegaClassToNameSomehow
 from globals import MODEL_SHEET
 
 def get_filepath(arg):
@@ -42,24 +45,47 @@ def get_model_sheet(arg):
     else:
         return MODEL_SHEET
 
-if __name__ == "__main__":
+
+if __name__ == "__main__old":
    
     arg = docopt(__doc__)
 
     file = get_filepath(arg)
     sheet = get_model_sheet(arg)
     slim = False
-    use_dataset = False
 
     # slim formatting
     if arg["--slim"] or arg["-s"]:
         slim = True
 
-    # 'dataset' option
-    if arg["--use-dataset"] or arg["-D"]:
-        use_dataset = True
-
     if arg["-U"] or arg["--update-model"]:
         update_xl_model(file, sheet)
+    elif arg["--use-dataset"] or arg["-D"]:
+        derive_sheets_from_dataset(file)
     else:
-        make_xl_model(file, sheet, slim, use_dataset)
+        make_xl_model(file, sheet, slim)
+
+
+if __name__ == "__main__":
+
+    arg = docopt(__doc__)
+
+    file = get_filepath(arg)
+    sheet = get_model_sheet(arg)
+    slim = False
+
+    # slim formatting
+    if arg["--slim"] or arg["-s"]:
+        slim = True
+
+    ms = MegaClassToNameSomehow(file, sheet)
+
+    if arg["-U"] or arg["--update-model"]:
+        ms.update_model()
+    elif arg["--use-dataset"] or arg["-D"]:
+        ms.derive_from_dataset()
+    else:
+        if slim:
+            ms.build_slim()
+        else:
+            ms.build_fancy()
