@@ -40,8 +40,9 @@ In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generat
 ```
 Usage:   
     model.py <xlfile> 
-    model.py <xlfile> [--from-dataset | -D] [--slim | -s]
-    model.py <xlfile> (--update | -U) [--sheet=<name>]
+    model.py <xlfile> (--split-dataset | -D) [--sheet=<name>] 
+    model.py <xlfile> (--make-model    | -M) [--slim | -s]
+    model.py <xlfile> (--update-model  | -U) [--sheet=<name>]   
 ```
 
 ```model.py <xlfile>``` reads inputs from ```data```, ```controls```, ```equations``` and ```names``` 
@@ -51,16 +52,17 @@ It overwrites ```model``` sheet in ```<xlfile>``` without warning.
    
 |   Option  | Description      |
 |-----|------|
-|```--from-dataset``` or ``-D`` |  derive 'data' and 'controls' sheets content from 'dataset' sheet |
-|```--slim``` or ```-s```   |  produce no extra formatting on 'model' sheet (labels and years only) |
-| ```--update``` or ```-U``` |  update Excel formulas on 'model' sheet or other sheet specified in ```[--sheet=<name>]``` |
+|```--make-model``` or ``-M`` |  (the same as if `model.py` was invoked without options) creates `model` sheet out of `data`, `controls`, `names` and `equations` sheets |
+|```--split-dataset``` or ``-D`` |  derive `data`, `controls`, `names` and `equations` sheets content from `dataset` sheet |
+|```--slim``` or ```-s```   |  produce no extra formatting on `model` sheet (labels and years only) |
+| ```--update-model``` or ```-U``` |  update Excel formulas on `model` sheet or other sheet specified in ```[--sheet=<name>]``` |
 
 
 ##Excel file
 
 - The program requires inputs from ```equations```,  ```data```, ```controls``` sheets 
-- With ```-D``` key the program will attempt to extract data and controls from ```dataset``` sheet   
 - ```names``` sheet with variable names is optional
+- With ```-D``` key the program will attempt to extract ```data```, ```controls```, ```names``` and ```equations``` from ```dataset``` sheet   
 - Spreadsheet model will be placed to ```model``` sheet
 
 
