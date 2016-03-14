@@ -32,7 +32,7 @@ Usage:
 
 from docopt import docopt
 import os
-from make_xl_model import make_xl_model, update_xl_model, derive_sheets_from_dataset, MegaClassToNameSomehow
+from make_xl_model import make_xl_model, update_xl_model, derive_sheets_from_dataset, ModelCreator, ModelUpdater
 from globals import MODEL_SHEET
 
 def get_filepath(arg):
@@ -78,14 +78,19 @@ if __name__ == "__main__":
     if arg["--slim"] or arg["-s"]:
         slim = True
 
-    ms = MegaClassToNameSomehow(file, sheet)
+
 
     if arg["-U"] or arg["--update-model"]:
-        ms.update_model()
+        _ = ModelUpdater(file, sheet)
+        _.update_model()
+        _.print_model_sheet()
     elif arg["--use-dataset"] or arg["-D"]:
-        ms.derive_from_dataset()
+        _ = ModelCreator(file, sheet)  # deriving functionality still here
+        _.derive_from_dataset()
     else:
+        _ = ModelCreator(file, sheet)
         if slim:
-            ms.build_slim()
+            _.build_slim()
         else:
-            ms.build_fancy()
+            _.build_fancy()
+        _.print_model_sheet()

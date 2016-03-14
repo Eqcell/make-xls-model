@@ -267,11 +267,24 @@ def make_xl_model(abs_filepath, sheet, slim):
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
 
 
-class MegaClassToNameSomehow:
+class ExcelFileWorker:
 
-    def __init__(self, excel_file, sheet):
+    def __init__(self, excel_file):
         self.file = excel_file
-        self.sheet = sheet
+
+        if not os.path.isfile(self.file):
+            raise Exception("ERROR: file {} doesn't exist".format(self.file))
+
+    def _save_array(self, ar, sheet):
+        write_array_to_xl_using_xlwings(ar, self.file, sheet)
+
+
+class ModelCreator(ExcelFileWorker):
+
+    def __init__(self, excel_file, model_sheet):
+        ExcelFileWorker.__init__(self, excel_file)
+
+        self.model_sheet = model_sheet
 
         self.model_df = None
         self.model_array = None
@@ -281,9 +294,6 @@ class MegaClassToNameSomehow:
             for i in [1,2,3,4]:
                  yield str(i)
         self.gen = yield_chapter_numbers()
-
-        if not os.path.isfile(self.file):
-            raise Exception("ERROR: file {} doesn't exist".format(self.file))
 
     def build_slim(self):
         self._load_main_sheets_to_array()
@@ -295,8 +305,8 @@ class MegaClassToNameSomehow:
         self._fill_array_with_excel_formulas()
         self._add_description_for_equations()
 
-    def update_model(self):
-        pass
+    def save(self):
+        self._save_array(self.model_array, self.model_sheet)
 
     def derive_from_dataset(self):
         dataset_to_basic_sheets(self.file)
@@ -304,9 +314,6 @@ class MegaClassToNameSomehow:
     def print_model_sheet(self):
         print("\nResulting Excel sheet as array:")
         print(self.model_array)
-
-    def save(self):
-        write_array_to_xl_using_xlwings(self.model_df, self.file, self.sheet)
 
     def _load_main_sheets_to_array(self):
         self._read_main_sheets()
@@ -361,3 +368,24 @@ class MegaClassToNameSomehow:
 
     def _fill_array_with_excel_formulas(self):
         self.model_array = fill_array_with_excel_formulas(self.model_array, self.equations_dict, self.pivot_col)
+
+
+class ModelUpdater(ExcelFileWorker):
+
+    def __init__(self, excel_file, model_sheet):
+        ExcelFileWorker.__init__(self, excel_file)
+        self.model_sheet = model_sheet
+        self.pivot_col = 2
+        self.model_array = None
+
+    def update_model(self):
+        save_xl_using_xlwings(self.file)
+        self.model_array, equations_dict = get_array_and_support_variables(self.file, self.model_sheet, self.pivot_col)
+        self.model_array = fill_array_with_excel_formulas_based_on_is_forecast(self.model_array, equations_dict, self.pivot_col)
+
+    def save(self):
+        self._save_array(self.model_array, self.model_sheet)
+
+    def print_model_sheet(self):
+        print("\nResulting Excel sheet as array:")
+        print(self.model_array)
