@@ -278,6 +278,58 @@ class ExcelFileWorker:
     def _save_array(self, ar, sheet):
         write_array_to_xl_using_xlwings(ar, self.file, sheet)
 
+#------------------------------------------------------------------
+# EP suggestion 1: separate class for splitting dataset - very
+#                  I suggest keeping this as a more separate job, not part of ModelCreator routine
+class DatasetSplitter(ExcelFileWorker):
+    
+    def __init__(self, excel_file):
+        ExcelFileWorker.__init__(self, excel_file)
+    
+    def derive_from_dataset(self):
+        dataset_to_basic_sheets(self.file)
+        
+# ----------------------------------------------------------------
+
+
+
+
+#------------------------------------------------------------------
+# EP suggestion 2: it appears that both ModelCreator and ModelUpdater have  
+#                  save() and print_model() methods.  
+#                  maybe have some parent class e.g. _Model to recycle this code
+#                  I'm not sure about this change, because  save() and print_model() willnot be immediately callable inside 
+#                  this method, because their arguemnts are not defined, but maybe this is fine. It's good to recylce  save() and print_model() though. 
+#                  Next defintions will be     
+#                  class ModelCreator(_Model)
+#                  class ModelUpdater(_Model)
+
+
+class _Model(ExcelFileWorker):
+    
+    def __init__(self, excel_file, model_sheet):
+        ExcelFileWorker.__init__(self, excel_file)
+        self.model_sheet = model_sheet
+        self.model_array = None
+        
+    def save(self):
+        self._save_array(self.model_array, self.model_sheet)
+
+    def print_model_sheet(self):
+        print("\nResulting Excel sheet as array:")
+        print(self.model_array)
+
+#------------------------------------------------------------------
+
+
+#------------------------------------------------------------------
+# Suggenstion 3: I also thought of an extra parent class ```DefaultSheetNames``` or ```DefaultSheetConfiguration``` 
+#                holding sheet names like 'model', 'dataset', etc and some constants. Given more though I noticed 
+#                it does not really fit to high level classes, but rather more subordinate classes. 
+#                For example default names for model seem to be hidden in import_specification.py
+#                so this does not apply to highlevel classes, just something to keep in mind if we go further to creating more classes, not todo immediately.
+#------------------------------------------------------------------
+
 
 class ModelCreator(ExcelFileWorker):
 
@@ -308,8 +360,8 @@ class ModelCreator(ExcelFileWorker):
     def save(self):
         self._save_array(self.model_array, self.model_sheet)
 
-    def derive_from_dataset(self):
-        dataset_to_basic_sheets(self.file)
+    #def derive_from_dataset(self):
+    #    dataset_to_basic_sheets(self.file)
 
     def print_model_sheet(self):
         print("\nResulting Excel sheet as array:")
