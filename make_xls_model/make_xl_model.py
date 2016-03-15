@@ -33,7 +33,7 @@ def write_array_to_xl_using_xlwings(ar, file, sheet):
     wb.save()
 
 #--------------------------------------------------------------------------
-# Not tested
+# Not tested below: alternative Excel writer
 
 def change_extension(file):
     """
@@ -79,7 +79,7 @@ def subset_df(df, var_list):
 def make_df_before_equations(data_df, controls_df, equations_dict, var_group):
     """
     Return a dataframe containing data, controls and a placeholder for new 
-    varaibales derived in equations.
+    variables derived in equations.
     """    
     IS_FORECAST_LABEL = 'is_forecast'
     
@@ -97,7 +97,6 @@ def make_df_before_equations(data_df, controls_df, equations_dict, var_group):
     df = pd.merge(df, df3, left_index = True, right_index = True, how = 'left')
     
     # reorganise rows
-    
     var_list = var_group['data'] +  var_group['eq'] + var_group['control'] + [IS_FORECAST_LABEL]
     return subset_df(df, var_list)
 
@@ -150,6 +149,9 @@ def add_equations_to_array (ar, pivot_col, eq_list):
         ar[-1, pivot_col] = eq
     return ar
 
+###########################################################################
+## Split *dataset*  sheet
+###########################################################################
 
 def dataset_to_basic_sheets(abs_filepath):
     dataset = get_dataset_df(abs_filepath)
@@ -187,12 +189,11 @@ def dataset_to_basic_sheets(abs_filepath):
     write_array_to_xl_using_xlwings(equations.as_matrix(), abs_filepath, 'equations')
 
 
-
 ###########################################################################
-## Main entry point
+## Main fucntional entry points (all of this section to be replaced with higher level classes?)
 ###########################################################################
 
-                         
+# todo: function below will be replaced by higher level classes?
 def get_resulting_workbook_array_for_make(abs_filepath, slim = True):
 
     # Get model specification
@@ -249,6 +250,7 @@ def get_resulting_workbook_array_for_make(abs_filepath, slim = True):
     return ar
 
 # pivot_col = 2 is standard output of --make --fancy
+# todo: function below will be replaced by higher level classes?
 def update_xl_model(abs_filepath, sheet, pivot_col = 2): 
     save_xl_using_xlwings(abs_filepath) 
     ar, equations_dict = get_array_and_support_variables(abs_filepath, sheet, pivot_col)         
@@ -257,15 +259,20 @@ def update_xl_model(abs_filepath, sheet, pivot_col = 2):
     print(ar)  
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
 
+# todo: is this a duplicate that is never used? delete/comment out?
 def derive_sheets_from_dataset(abs_filepath):
     dataset_to_basic_sheets(abs_filepath)
-    
+
+# todo: function below will be replaced by higher level classes?
 def make_xl_model(abs_filepath, sheet, slim):
     ar = get_resulting_workbook_array_for_make(abs_filepath, slim)
     print("\nResulting Excel sheet as array:")     
     print(ar)
     write_array_to_xl_using_xlwings(ar, abs_filepath, sheet)
 
+###########################################################################
+## Higher level classes - new entry points, used in model.py
+###########################################################################
 
 class ExcelFileWorker:
 
@@ -350,7 +357,9 @@ class ModelCreator(_Model):
 
         self.model_df = None
         self.pivot_col = None
-
+        
+        # question: maybe this should not be global to class instance, but rather local 
+        #           for _add_descriptions_for_all_except_equations(self)? or there is reason why it is better here?
         def yield_chapter_numbers():
             for i in [1,2,3,4]:
                  yield str(i)
