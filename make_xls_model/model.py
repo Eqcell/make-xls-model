@@ -6,7 +6,7 @@
 
 Usage:
     model.py <xlfile> 
-    model.py <xlfile> (--split-dataset | -D) [--sheet=<name>] 
+    model.py <xlfile> (--split-dataset | -D)
     model.py <xlfile> (--make-model    | -M) [--slim | -s]
     model.py <xlfile> (--update-model  | -U) [--sheet=<name>]   
 """
