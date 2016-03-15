@@ -278,17 +278,7 @@ class ExcelFileWorker:
     def _save_array(self, ar, sheet):
         write_array_to_xl_using_xlwings(ar, self.file, sheet)
 
-#------------------------------------------------------------------
-# EP suggestion 1: separate class for splitting dataset - very
-#                  I suggest keeping this as a more separate job, not part of ModelCreator routine
-class DatasetSplitter(ExcelFileWorker):
-    
-    def __init__(self, excel_file):
-        ExcelFileWorker.__init__(self, excel_file)
-    
-    def derive_from_dataset(self):
-        dataset_to_basic_sheets(self.file)
-        
+
 # ----------------------------------------------------------------
 
 
@@ -313,11 +303,17 @@ class _Model(ExcelFileWorker):
         self.model_array = None
         
     def save(self):
-        self._save_array(self.model_array, self.model_sheet)
+        if self.model_array is not None and self.model_sheet is not None:
+            self._save_array(self.model_array, self.model_sheet)
+        else:
+            raise Exception("In class _Model: can't save model because 'self.model_array' and 'self.model_sheet' are not defined")
 
     def print_model_sheet(self):
-        print("\nResulting Excel sheet as array:")
-        print(self.model_array)
+        if self.model_array is not None:
+            print("\nResulting Excel sheet as array:")
+            print(self.model_array)
+        else:
+            raise Exception("In class _Model: can't print model because 'self.model_array' is not defined")
 
 #------------------------------------------------------------------
 
@@ -330,16 +326,55 @@ class _Model(ExcelFileWorker):
 #                so this does not apply to highlevel classes, just something to keep in mind if we go further to creating more classes, not todo immediately.
 #------------------------------------------------------------------
 
+class DatasetSplitter(ExcelFileWorker):
 
-class ModelCreator(ExcelFileWorker):
+    def __init__(self, excel_file):
+        ExcelFileWorker.__init__(self, excel_file)
+        self.names, self.equations, self.data, self.controls = None, None, None, None
+
+    def derive_from_dataset(self):
+        dataset = get_dataset_df(self.file)
+
+        def remove_useless_columns(df):
+            columns_to_remove = [x for x in df.columns if 'Unnamed:' in str(x)]
+            return df.drop(columns_to_remove, 1)
+
+        def remove_rows_with_no_type(df):
+            return df[df.type.notnull()]
+
+        dataset = remove_useless_columns(dataset)
+        dataset = remove_rows_with_no_type(dataset)
+
+        self.names = dataset[dataset.type.map(lambda x: x in ['data', 'param'])][['var', 'name']]
+        validate_variable_names(self.names['var'].tolist())
+
+        self.equations = dataset[dataset.type == 'eq'][['name']]
+
+        def get_data_years(df):
+            years = df[dataset.type == 'is_forecast'].iloc[0]
+            return [year for year, is_forecast in years.iteritems() if is_forecast == 0]
+
+        self.data = dataset[dataset.type == 'data'][['var'] + get_data_years(dataset)]
+        self.controls = dataset[dataset.type == 'param'].drop(['type', 'name'], 1)
+
+    def save(self):
+        def to_array_with_years_and_values(df):
+            result = np.concatenate(([np.array(df.columns)], df.as_matrix().astype(object)))
+            result[0][0] = ''
+            return result
+
+        write_array_to_xl_using_xlwings(to_array_with_years_and_values(self.data), self.file, 'data')
+        write_array_to_xl_using_xlwings(to_array_with_years_and_values(self.controls), self.file, 'controls')
+        write_array_to_xl_using_xlwings(self.names.as_matrix(), self.file, 'names')
+        write_array_to_xl_using_xlwings(self.equations.as_matrix(), self.file, 'equations')
+
+
+class ModelCreator(_Model):
 
     def __init__(self, excel_file, model_sheet):
-        ExcelFileWorker.__init__(self, excel_file)
-
-        self.model_sheet = model_sheet
+        _Model.__init__(self, excel_file, model_sheet)
 
         self.model_df = None
-        self.model_array = None
         self.pivot_col = None
 
         def yield_chapter_numbers():
@@ -356,16 +391,6 @@ class ModelCreator(ExcelFileWorker):
         self._add_descriptions_for_all_except_equations()
         self._fill_array_with_excel_formulas()
         self._add_description_for_equations()
-
-    def save(self):
-        self._save_array(self.model_array, self.model_sheet)
-
-    #def derive_from_dataset(self):
-    #    dataset_to_basic_sheets(self.file)
-
-    def print_model_sheet(self):
-        print("\nResulting Excel sheet as array:")
-        print(self.model_array)
 
     def _load_main_sheets_to_array(self):
         self._read_main_sheets()
@@ -392,14 +417,14 @@ class ModelCreator(ExcelFileWorker):
            else:
                return ""
 
-        ar, pivot_col = insert_column(self.model_array, self.pivot_col, get_var_desc)
-        ar, pivot_col = insert_column(self.model_array, self.pivot_col, null)
+        self.model_array, self.pivot_col = insert_column(self.model_array, self.pivot_col, get_var_desc)
+        self.model_array, self.pivot_col = insert_column(self.model_array, self.pivot_col, null)
 
         # Decorate with extra empty rows
         def insert_row(t, gen):
             # t is (varname, start_cell_text)
-            return insert_empty_row_before_variable(ar, t[0],
-                                                    pivot_col, next(gen) + t[1])
+            return insert_empty_row_before_variable(self.model_array, t[0],
+                                                    self.pivot_col, next(gen) + t[1])
 
         dec_dict = {
             "data": (self.var_group['data'][0],    ". ИСХОДНЫЕ ДАННЫЕ И ПРОГНОЗ"),
@@ -422,22 +447,13 @@ class ModelCreator(ExcelFileWorker):
         self.model_array = fill_array_with_excel_formulas(self.model_array, self.equations_dict, self.pivot_col)
 
 
-class ModelUpdater(ExcelFileWorker):
+class ModelUpdater(_Model):
 
     def __init__(self, excel_file, model_sheet):
-        ExcelFileWorker.__init__(self, excel_file)
-        self.model_sheet = model_sheet
+        _Model.__init__(self, excel_file, model_sheet)
         self.pivot_col = 2
-        self.model_array = None
 
     def update_model(self):
         save_xl_using_xlwings(self.file)
         self.model_array, equations_dict = get_array_and_support_variables(self.file, self.model_sheet, self.pivot_col)
         self.model_array = fill_array_with_excel_formulas_based_on_is_forecast(self.model_array, equations_dict, self.pivot_col)
-
-    def save(self):
-        self._save_array(self.model_array, self.model_sheet)
-
-    def print_model_sheet(self):
-        print("\nResulting Excel sheet as array:")
-        print(self.model_array)

@@ -32,7 +32,7 @@ Usage:
 
 from docopt import docopt
 import os
-from make_xl_model import make_xl_model, update_xl_model, derive_sheets_from_dataset, ModelCreator, ModelUpdater
+from make_xl_model import make_xl_model, update_xl_model, derive_sheets_from_dataset, ModelCreator, ModelUpdater, DatasetSplitter
 from globals import MODEL_SHEET
 
 def get_filepath(arg):
@@ -85,8 +85,10 @@ if __name__ == "__main__":
         _.update_model()
         _.print_model_sheet()
     elif arg["--use-dataset"] or arg["-D"]:
-        _ = ModelCreator(file, sheet)  # deriving functionality still here
+        _.save()
+        _ = DatasetSplitter(file)
         _.derive_from_dataset()
+        _.save()
     else:
         _ = ModelCreator(file, sheet)
         if slim:
@@ -94,3 +96,4 @@ if __name__ == "__main__":
         else:
             _.build_fancy()
         _.print_model_sheet()
+        _.save()
