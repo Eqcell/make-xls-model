@@ -3,16 +3,8 @@
    Reads inputs from 'data', 'controls', 'equations' and 'names' sheets of <xlfile> and writes 
    resulting spreadsheet to 'model' sheet in <xlfile>. Overwrites 'model' sheet in <xlfile> 
    without warning.  
-       
-Usage:   
-    model.py <xlfile> 
-    model.py <xlfile> (--use-dataset  | -D) [--slim | -s]
-    model.py <xlfile> (--update-model | -U) [--sheet=<name>]   
-"""
 
-# suggested change: model.py <xlfile> will update model sheet 
-"""
-Usage:   
+Usage:
     model.py <xlfile> 
     model.py <xlfile> (--split-dataset | -D) [--sheet=<name>] 
     model.py <xlfile> (--make-model    | -M) [--slim | -s]
@@ -20,14 +12,10 @@ Usage:
 """
 
 
-"""
-   Flags and options:   
-   --use-dataset or -D  derive 'data', 'controls', 'names' and 'equations' sheets content from 'dataset' sheet
-   --slim or -s          produce no extra formatting on 'model' sheet (labels and years only).   
-   --update-model or -U        update Excel formulas on 'model' sheet or other sheet specified in [--sheet=<name>] 
-"""
-
-
+# Flags and options:
+# --use-dataset or -D  derive 'data', 'controls', 'names' and 'equations' sheets content from 'dataset' sheet
+# --slim or -s          produce no extra formatting on 'model' sheet (labels and years only).
+# --update-model or -U        update Excel formulas on 'model' sheet or other sheet specified in [--sheet=<name>]
 
 
 from docopt import docopt
@@ -78,14 +66,12 @@ if __name__ == "__main__":
     if arg["--slim"] or arg["-s"]:
         slim = True
 
-
-
     if arg["-U"] or arg["--update-model"]:
         _ = ModelUpdater(file, sheet)
         _.update_model()
         _.print_model_sheet()
-    elif arg["--use-dataset"] or arg["-D"]:
         _.save()
+    elif arg["--split-dataset"] or arg["-D"]:
         _ = DatasetSplitter(file)
         _.derive_from_dataset()
         _.save()
