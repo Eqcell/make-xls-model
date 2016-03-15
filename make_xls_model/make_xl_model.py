@@ -279,22 +279,6 @@ class ExcelFileWorker:
         write_array_to_xl_using_xlwings(ar, self.file, sheet)
 
 
-# ----------------------------------------------------------------
-
-
-
-
-#------------------------------------------------------------------
-# EP suggestion 2: it appears that both ModelCreator and ModelUpdater have  
-#                  save() and print_model() methods.  
-#                  maybe have some parent class e.g. _Model to recycle this code
-#                  I'm not sure about this change, because  save() and print_model() willnot be immediately callable inside 
-#                  this method, because their arguemnts are not defined, but maybe this is fine. It's good to recylce  save() and print_model() though. 
-#                  Next defintions will be     
-#                  class ModelCreator(_Model)
-#                  class ModelUpdater(_Model)
-
-
 class _Model(ExcelFileWorker):
     
     def __init__(self, excel_file, model_sheet):
@@ -306,25 +290,15 @@ class _Model(ExcelFileWorker):
         if self.model_array is not None and self.model_sheet is not None:
             self._save_array(self.model_array, self.model_sheet)
         else:
-            raise Exception("In class _Model: can't save model because 'self.model_array' and 'self.model_sheet' are not defined")
+            raise Exception("In class _Model: cannot save model because 'self.model_array' and 'self.model_sheet' are not defined")
 
     def print_model_sheet(self):
         if self.model_array is not None:
             print("\nResulting Excel sheet as array:")
             print(self.model_array)
         else:
-            raise Exception("In class _Model: can't print model because 'self.model_array' is not defined")
+            raise Exception("In class _Model: cannot print model because 'self.model_array' is not defined")
 
-#------------------------------------------------------------------
-
-
-#------------------------------------------------------------------
-# Suggenstion 3: I also thought of an extra parent class ```DefaultSheetNames``` or ```DefaultSheetConfiguration``` 
-#                holding sheet names like 'model', 'dataset', etc and some constants. Given more though I noticed 
-#                it does not really fit to high level classes, but rather more subordinate classes. 
-#                For example default names for model seem to be hidden in import_specification.py
-#                so this does not apply to highlevel classes, just something to keep in mind if we go further to creating more classes, not todo immediately.
-#------------------------------------------------------------------
 
 class DatasetSplitter(ExcelFileWorker):
 
@@ -457,3 +431,10 @@ class ModelUpdater(_Model):
         save_xl_using_xlwings(self.file)
         self.model_array, equations_dict = get_array_and_support_variables(self.file, self.model_sheet, self.pivot_col)
         self.model_array = fill_array_with_excel_formulas_based_on_is_forecast(self.model_array, equations_dict, self.pivot_col)
+
+
+# Comment: I also thought of an extra parent class ```DefaultSheetNames``` or ```DefaultSheetConfiguration``` 
+#          holding sheet names like 'model', 'dataset', etc and some constants. Given more though I noticed 
+#          it does not really fit to high level classes, but rather lower level classes. 
+#          For example default names for sheets are hidden in import_specification.py
+#          so this does not apply to highlevel classes, just something to keep in mind if we go further to creating more classes, not todo immediately.
