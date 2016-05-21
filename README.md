@@ -23,6 +23,7 @@ Imagine we want to do this calculation Excel sheet below. In ```C1``` we want a 
 | 4 | GDP = GDP[t-1]\*Iq\*Ip  |       |  |
 
 Result:
+
 |   | A   | B     | C     |
 |---|-----|-------|-------|
 | 1 | GDP | 23500 | 25415 |
