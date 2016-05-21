@@ -1,37 +1,35 @@
 ## Introduction
 
-Excel spreadsheets often [get messy](problem.md). Some forecast models we often create in Excel can be defined based on historic data, equations and forecast control parameters (growth rates, elasticities, ratios, etc.). These models can be generated in Excel file using ```make-xls-model```.
+Excel spreadsheets often [get messy](problem.md). Some help can come from explicitly writing formulas for the cells 
+and separating control parameters from data. 
 
-In brief, we intend to:
-- separate historic data from model/forecast specification 
-- explicitly show all forecast parameters 
-- explicitly show all equations in the model  
-- make a stand-alone Excel spreadsheet with no dependencies or VBA code, just new clean formulas in it
-- try make spreadsheet models replicable, overall.
-
-The script does not intend to:
-- do any forecast calculations outside Excel
-- resolve/optimise formulas, including circular references
-- spread Excel model to many sheets.
+```make-xls-model``` can populate Excel cells with formulas based on list of equations and can help managing data and control parameters. It generates a stand-alone Excel spreadsheet with no dependencies or VBA code, just new clean formulas in it.
 
 ## Simple illustration
 
-GDP forecast value is a function of previous year value, deflator (Ip) and real growth rate (Iq):
+GDP forecast value is a multiple of previous year nominal GDP value, deflator (Ip) and real growth rate (Iq): 
 
-|   | A   | B     | C     |
-|---|-----|-------|-------|
-| 1 | GDP | 23500 | 25415 |
-| 2 | Iq  |       | 1,05  |
-| 3 | Ip  |       | 1,03  |
+```
+GDP = GDP[t-1] *Iq * Ip
+```
 
-In ```C1``` we have a formula ```=B1*C2*C3```.  ```make-xls-model``` can generate this formula and place it in ```C1``` from a string in cell ```A4``` below.
+Imagine we want to do this calculation Excel sheet below. In ```C1``` we want a formula ```=B1*C2*C3```.  ```make-xls-model``` can generate this formula based on equation in cell ```A4``` and place it in ```C1```.
 
 |   | A   | B     | C     |
 |---|-----|-------|-------|
 | 1 | GDP | 23500 |       |
 | 2 | Iq  |       | 1,05  |
 | 3 | Ip  |       | 1,03  |
-| 4 | GDP = GDP[t-1]\*Iq\*It  |       |  |
+| 4 | GDP = GDP[t-1]\*Iq\*Ip  |       |  |
+
+Result:
+|   | A   | B     | C     |
+|---|-----|-------|-------|
+| 1 | GDP | 23500 | 25415 |
+| 2 | Iq  |       | 1,05  |
+| 3 | Ip  |       | 1,03  |
+
+C1 wil contain ```=B1*C2*C3```
 
 ##Interface
 
@@ -123,3 +121,8 @@ and run PyCharm from command line after the right Anaconda environment is active
     activate xls3
     "c:\Program Files (x86)\JetBrains\PyCharm 5.0.4\bin\pycharm.exe"
 ```
+
+The script does not intend to:
+- do any forecast calculations outside Excel
+- resolve/optimise formulas, including circular references
+- spread Excel model to many sheets.
