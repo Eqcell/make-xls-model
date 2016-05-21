@@ -1,6 +1,6 @@
 ## Introduction
 
-Excel spreadsheets often [get messy](problem.md). Some help can come from explicitly writing formulas for the cells 
+Excel spreadsheets often [get messy](problem.md). Some help comes form writing aside formulas for the cells 
 and separating control parameters from data. 
 
 ```make-xls-model``` can populate Excel cells with formulas based on list of equations and can help managing data and control parameters. It generates a stand-alone Excel spreadsheet with no dependencies or VBA code, just new clean formulas in it.
